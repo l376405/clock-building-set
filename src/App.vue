@@ -5,11 +5,16 @@
 
 <script>
 import HelloWorld from './components/HelloWorld.vue'
+import { useTitle } from '@vueuse/core'
 
 export default {
   name: 'App',
   components: {
     HelloWorld
+  },
+  setup() {
+    const title = useTitle('時鐘設置')
+    return { title }
   }
 }
 </script>

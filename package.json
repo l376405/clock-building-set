@@ -6,7 +6,8 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "build:installer": "tauri build && makensis src-tauri/installer.nsi"
   },
   "dependencies": {
     "@vueuse/core": "^11.1.0",

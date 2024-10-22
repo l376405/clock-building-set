@@ -1,0 +1,26 @@
+# 專案結構
+
+- src/
+  - assets/
+    - images/
+    - styles/
+      - main.css
+      - clock.css
+      - leftSettings.css
+      - rightObjectList.css
+  - components/
+    - ClockDisplay.vue
+    - LeftSettingsPanel.vue
+    - DateObject.vue
+    - RightObjectList.vue
+  - composables/
+    - useClockLogic.js
+    - useSettingsLogic.js
+    - useObjectListLogic.js
+    - useDateObjectLogic.js
+  - store/
+    - settings.js
+  - views/
+    - Home.vue
+  - App.vue
+  - main.js

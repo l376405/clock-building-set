@@ -1,5 +1,5 @@
 // src/store/settings.js
-import { reactive } from 'vue'
+import { reactive, watch } from 'vue'
 
 export const settingsStore = reactive({
 
@@ -55,5 +55,49 @@ export const settingsStore = reactive({
         weekdayFormat: '',
         separator: '',
         fontSize: '5rem'
+    },
+
+    // 方法來更新設置
+    updateSetting(path, value) {
+        const keys = path.split('.');
+        let current = this;
+        for (let i = 0; i < keys.length - 1; i++) {
+        current = current[keys[i]];
+        }
+        current[keys[keys.length - 1]] = value;
+        this.saveToLocalStorage(path, value);
+    },
+
+    // 保存到本地存儲
+    saveToLocalStorage(path, value) {
+        localStorage.setItem(`settings.${path}`, JSON.stringify(value));
+    },
+
+    // 從本地存儲加載
+    loadFromLocalStorage() {
+        Object.keys(this).forEach(key => {
+        if (typeof this[key] !== 'function') {
+            const value = localStorage.getItem(`settings.${key}`);
+            if (value) {
+            this[key] = JSON.parse(value);
+            }
+        }
+        });
     }
-    })
+});
+
+// 監聽變化並保存到本地存儲
+watch(
+    () => settingsStore,
+    (newValue) => {
+      Object.keys(newValue).forEach(key => {
+        if (typeof newValue[key] !== 'function') {
+          localStorage.setItem(`settings.${key}`, JSON.stringify(newValue[key]));
+        }
+      });
+    },
+    { deep: true }
+);
+
+// 初始加載
+settingsStore.loadFromLocalStorage();

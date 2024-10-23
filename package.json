@@ -10,10 +10,14 @@
     "build:installer": "tauri build && makensis src-tauri/installer.nsi"
   },
   "dependencies": {
+    "@tauri-apps/cli": "^1.5.0",
     "@vueuse/core": "^11.1.0",
     "core-js": "^3.8.3",
-    "vue": "^3.2.13",
-    "@tauri-apps/cli": "^1.5.0"
+    "date-fns": "^4.1.0",
+    "file-saver": "^2.0.5",
+    "idb": "^8.0.0",
+    "pinia": "^2.2.4",
+    "vue": "^3.2.13"
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",

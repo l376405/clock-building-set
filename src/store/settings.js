@@ -1,103 +1,75 @@
 // src/store/settings.js
-import { reactive, watch } from 'vue'
+import { defineStore } from 'pinia'
+import { Logger } from '../utils/logger'
 
-export const settingsStore = reactive({
-
-    // 基本設置
+export const useSettingsStore = defineStore('settings', {
+  state: () => ({
     basic: {
-        timeFormat: 'HH:mm:ss',
-        font: 'Arial',
-        fontSize: '5rem',
-        textColor: '#000000'
+      timeFormat: 'HH:mm:ss',
+      font: 'Arial',
+      fontSize: '5rem',
+      textColor: '#000000'
     },
-
-    // 分隔符設置
     separator: {
-        character: ':',
-        rotation: 0,
-        leftMargin: 0.2,
-        rightMargin: 0.2
+      character: ':',
+      rotation: 0,
+      leftMargin: 0.2,
+      rightMargin: 0.2
     },
-
-    // 外觀設置
     appearance: {
-        strokeColor: '#ffffff',
-        strokeWidth: 0,
-        backgroundColor: '#ffffff',
-        transparentBg: false
+      strokeColor: '#ffffff',
+      strokeWidth: 0,
+      backgroundColor: '#ffffff',
+      transparentBg: false
     },
-
-    // 動畫設置
     animation: {
-        digitDuration: 0.5,
-        digitExitAnimation: '',
-        digitEnterAnimation: '',
-        colonKeyframes: '',
-        colonProperties: ''
+      digitDuration: 0.5,
+      digitExitAnimation: '',
+      digitEnterAnimation: '',
+      colonKeyframes: '',
+      colonProperties: ''
     },
-
-    // 圖片設置
     images: {
-        numbers: {},
-        separator: '',
-        numberSize: 50,
-        separatorSize: 50
+      numbers: {},
+      separator: '',
+      numberSize: 50,
+      separatorSize: 50
     },
-
-    // 自訂 CSS
     customCSS: '',
-
-    // 日期設置
     dateSettings: {
-        yearFormat: '',
-        monthFormat: '',
-        dayFormat: '',
-        weekdayFormat: '',
-        separator: '',
-        fontSize: '5rem'
-    },
-
-    // 方法來更新設置
-    updateSetting(path, value) {
-        const keys = path.split('.');
-        let current = this;
-        for (let i = 0; i < keys.length - 1; i++) {
-        current = current[keys[i]];
-        }
-        current[keys[keys.length - 1]] = value;
-        this.saveToLocalStorage(path, value);
-    },
-
-    // 保存到本地存儲
-    saveToLocalStorage(path, value) {
-        localStorage.setItem(`settings.${path}`, JSON.stringify(value));
-    },
-
-    // 從本地存儲加載
-    loadFromLocalStorage() {
-        Object.keys(this).forEach(key => {
-        if (typeof this[key] !== 'function') {
-            const value = localStorage.getItem(`settings.${key}`);
-            if (value) {
-            this[key] = JSON.parse(value);
-            }
-        }
-        });
+      yearFormat: '',
+      monthFormat: '',
+      dayFormat: '',
+      weekdayFormat: '',
+      separator: '',
+      fontSize: '5rem'
     }
-});
+  }),
 
-// 監聽變化並保存到本地存儲
-watch(
-    () => settingsStore,
-    (newValue) => {
-      Object.keys(newValue).forEach(key => {
-        if (typeof newValue[key] !== 'function') {
-          localStorage.setItem(`settings.${key}`, JSON.stringify(newValue[key]));
+  actions: {
+    updateSetting(path, value) {
+      const keys = path.split('.');
+      let current = this;
+      Logger.debug('Updating setting', { path, value });
+      for (let i = 0; i < keys.length - 1; i++) {
+        current = current[keys[i]];
+      }
+      current[keys[keys.length - 1]] = value;
+      this.saveToLocalStorage(path, value);
+      Logger.info('Updated setting', { path });
+    },
+
+    saveToLocalStorage(path, value) {
+      localStorage.setItem(`settings.${path}`, JSON.stringify(value));
+    },
+
+    loadFromLocalStorage() {
+      Object.keys(this.$state).forEach(key => {
+        const value = localStorage.getItem(`settings.${key}`);
+        if (value) {
+          this.$patch({ [key]: JSON.parse(value) });
         }
       });
-    },
-    { deep: true }
-);
-
-// 初始加載
-settingsStore.loadFromLocalStorage();
+    }
+  }
+})

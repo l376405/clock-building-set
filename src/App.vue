@@ -1,16 +1,20 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <div id="app">
+    <Home />
+  </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+//import HelloWorld from './components/HelloWorld.vue'
 import { useTitle } from '@vueuse/core'
+
+// 引入組件
+import Home from './views/Home.vue'
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    Home
   },
   setup() {
     const title = useTitle('時鐘設置')

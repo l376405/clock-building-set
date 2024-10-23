@@ -13,7 +13,7 @@ export const useSettingsStore = defineStore('settings', {
     // 時鐘設定
     basic: {
       timeFormat: 'HH:mm:ss', // 時間格式
-      font: 'Arial', // 字體
+      fontFamily: 'Arial', // 字體
       fontSize: '5rem', // 字體大小
       textColor: '#000000' // 文字顏色
     },

@@ -31,7 +31,7 @@
     </div>
 </template>
 <script>
-    import { ref, onMounted, onUnmounted } from 'vue';
+    import { ref, onMounted} from 'vue';
     import { useSettingsStore } from '@/store/settings';
     import RightObjectList from '@/components/RightObjectList.vue';
     import ClockDisplay from '@/components/ClockDisplay.vue';

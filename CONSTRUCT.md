@@ -18,6 +18,7 @@
     - useSettingsLogic.js # 設置邏輯
     - useObjectListLogic.js # 對象列表邏輯
     - useDateObjectLogic.js # 日期對象邏輯
+    - useExportHTML.js # 導出HTML邏輯
   - utils/
     - logger.js # 日誌工具
   - store/ # 存儲

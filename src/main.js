@@ -12,7 +12,6 @@ const app = createApp(App)
 app.use(pinia)
 pinia.use(persistencePlugin)
 pinia.use(loggerPlugin)
-app.use(router)
 app.config.globalProperties.$logger = logger
 // 創建 Vue 實例
 app.mount('#app')

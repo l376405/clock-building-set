@@ -1,12 +1,12 @@
 .resizer {
     position: absolute;
-    top: 15px;
-    bottom: 0;
-    width: 5px;
+    top: 7.2vh;
+    bottom: 2vh;
+    width: 8px;
     background: #cccccc;
     cursor: col-resize;
     z-index: 1000;
-    border-radius: 5px;
+    border-radius: 50%; /* 調整邊框圓角 */
     max-height: calc(100% - 15px);
 }
 

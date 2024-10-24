@@ -5,9 +5,9 @@ import { saveAs } from 'file-saver' // 文件保存
 // 日誌管理器
 class Logger {
     constructor() {
-        this.isDebugMode = false; // 是否為調試模式
+        this.isDebugMode = true; // 是否為調試模式
         this.logLevel = process.env.NODE_ENV === 'production' ? 'info' : 'debug'; // 日誌級別 預設為 info
-        this.initDB(); // 初始化 IndexedDB
+        this.dbPromise = this.initDB(); // 初始化 IndexedDB
     }
 
     async initDB() {

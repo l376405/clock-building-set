@@ -96,12 +96,12 @@
             <!-- 左側面板調整 -->
             <div id="left-resizer" class="resizer"
                 @mousedown="startLeftResize"
-                :style="{ left: `${leftWidth-3}px` }"
+                :style="{ left: `calc(1vw + ${leftWidth - 3}px)` }"
                 :class="{ 'panel-animating': isLeftPanelAnimating }"
             ></div>
             <div class="toggle-button left" 
                 @click="toggleLeftPanel" 
-                :style="{ left: `${leftWidth+2}px` }" 
+                :style="{ left: `calc(1vw + ${leftWidth+4}px)` }" 
                 :class="{ 'panel-animating': isLeftPanelAnimating }"
             >
                 {{ leftPanelVisible ? '◀' : '▶' }}
@@ -110,12 +110,12 @@
             <!-- 右側面板調整 -->
             <div id="right-resizer" class="resizer"
                 @mousedown="startRightResize"
-                :style="{ right: `${rightWidth-3}px` }"
+                :style="{ right: `calc(1vw + ${rightWidth - 3}px)` }"
                 :class="{ 'panel-animating': isRightPanelAnimating }"
             ></div>
             <div class="toggle-button right" 
                 @click="toggleRightPanel" 
-                :style="{ right: `${rightWidth+2}px` }" 
+                :style="{ right: `calc(1vw + ${rightWidth+4}px)` }" 
                 :class="{ 'panel-animating': isRightPanelAnimating }"
             >
                 {{ rightPanelVisible ? '▶' : '◀' }}
@@ -186,6 +186,12 @@
     watch(rightWidth, (newWidth) => {
         settingsStore.updateSetting('rightPanelWidth', newWidth); // 更新右側面板寬度
     });
+    watch(leftPanelVisible, (newVisible) => {
+        settingsStore.updateSetting('leftPanelVisible', newVisible); // 更新左側面板可見性
+    });
+    watch(rightPanelVisible, (newVisible) => {
+        settingsStore.updateSetting('rightPanelVisible', newVisible); // 更新右側面板可見性
+    });
 
     onMounted(async () => {
         await settingsStore.loadFromLocalStorage();
@@ -210,10 +216,15 @@
     .home {
         height: 100vh;
         width: 100vw;
+        max-height: 99vh;
+        max-width: 99vw;
+        margin: auto;
+        padding: 0.1vh 0.1vw;
         position: relative;
         overflow: hidden;
         display: flex;
         flex-direction: column;
+        box-sizing: border-box;
     }
 
     .preview-area {
@@ -236,10 +247,6 @@
         overflow: hidden;
         z-index: 2;
         isolation: isolate;
-        margin-bottom: auto;
-        margin-top: auto;
-        margin-left: auto;
-        margin-right: auto;
     }
 
     .floating-panels > * {
@@ -251,14 +258,26 @@
     .right-panel {
         border-radius: 10px; /* 圓角 */
         border: 1px solid rgba(255, 255, 255, 0.2); /* 邊框 */
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 陰影 */
+        box-shadow: 0 4px 6px rgba(6, 5, 6, 0.624); /* 陰影 */
         background-color: rgba(255, 255, 255, 0.9); /* 背景顏色 */
+    }
+
+    .top-navbar {
+        position: absolute;
+        align-items: center;
+        justify-content: center;
+        top: 1vh;
+        left: 1vw;
+        right: 1vw;
+        height: 4vh;
+        width: 97vw;
+        min-height: 50px;
     }
 
     .left-panel, .right-panel {
         position: absolute;
-        top: 0;
-        bottom: 0;
+        top: 6vh;
+        bottom: 1vh;
         overflow: hidden;
     }
 
@@ -269,24 +288,14 @@
 
     .left-panel {
         position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
+        left: 1vw;
     }
 
     .right-panel {
         position: absolute;
-        right: 0;
-        top: 0;
-        bottom: 0;
+        right: 1vw;
     }
 
-    .top-navbar {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-    }
 
      /* 確保當面板隱藏時，不會有任何邊距或填充 */
     .left-panel:not(.panel-visible),

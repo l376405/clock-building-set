@@ -1,0 +1,66 @@
+.resizer {
+    position: absolute;
+    top: 15px;
+    bottom: 0;
+    width: 5px;
+    background: #cccccc;
+    cursor: col-resize;
+    z-index: 1000;
+    border-radius: 5px;
+    max-height: calc(100% - 15px);
+}
+
+.resizer.left {
+    right: -5px;
+}
+
+.resizer.right {
+    left: -5px;
+}
+
+.toggle-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 150px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1001;
+}
+
+.toggle-button.left {
+    left: 10px;
+    border-radius: 0 5px 5px 0;
+    clip-path: polygon(0 0, 100% 20%, 100% 80%, 0 100%);
+}
+
+.toggle-button.right {
+    right: 10px;
+    border-radius: 5px 0 0 5px;
+    clip-path: polygon(0 20%, 100% 0, 100% 100%, 0 80%);
+}
+
+.panel-container:hover .resizer,
+.panel-container:hover .toggle-button,
+.resizer,
+.toggle-button {
+    opacity: 1;
+}
+
+
+.resizer, .toggle-button {
+    transition: none;
+}
+
+.resizer.animating, .toggle-button.animating {
+    transition: left 0.3s ease, right 0.3s ease;
+}
+
+.resizer.panel-animating, .toggle-button.panel-animating {
+    transition: left 0.3s ease, right 0.3s ease;
+  }

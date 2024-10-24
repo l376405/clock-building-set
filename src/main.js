@@ -4,6 +4,7 @@ import { persistencePlugin } from './store/plugins/persistencePlugin'
 import { loggerPlugin } from './store/plugins/LoggerPlugin'
 import { logger } from './utils/logger'
 import App from './App.vue'
+import './assets/styles/common.css'
 
 // 創建 Pinia 實例
 const pinia = createPinia()

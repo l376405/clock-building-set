@@ -1,6 +1,6 @@
 // src/store/settings.js
 import { defineStore } from 'pinia'
-import { Logger } from '../utils/logger'
+import { logger } from '../utils/logger'
 
 export const useSettingsStore = defineStore('settings', {
   // 狀態儲存位置
@@ -64,29 +64,31 @@ export const useSettingsStore = defineStore('settings', {
   // 執行動作設定
   actions: {
     //更新設定
-    updateSetting(path, value) {
+    async updateSetting(path, value) {
       const keys = path.split('.'); // 分割路徑
       let current = this; // 當前狀態
-      Logger.debug('Updating setting', { path, value }); // 記錄更新設定
+      await logger.debug('Updating setting', { path, value }); // 記錄更新設定
       for (let i = 0; i < keys.length - 1; i++) {
         current = current[keys[i]]; // 更新當前狀態
       }
       current[keys[keys.length - 1]] = value; // 更新當前狀態
       this.saveToLocalStorage(path, value); // 保存到本地儲存
-      Logger.info('Updated setting', { path }); // 記錄更新設定
+      await logger.info('Updated setting', { path }); // 記錄更新設定
     },
     // 保存到本地儲存
     saveToLocalStorage(path, value) {
       localStorage.setItem(`settings.${path}`, JSON.stringify(value));
     },
     // 從本地儲存加載
-    loadFromLocalStorage() {
-      Object.keys(this.$state).forEach(key => {
+    async loadFromLocalStorage() {
+      Object.keys(this.$state).forEach(async (key) => {
         const value = localStorage.getItem(`settings.${key}`); // 從本地儲存取得值
         if (value) {
           this.$patch({ [key]: JSON.parse(value) }); // 更新狀態
+          await logger.debug(`Loaded setting from localStorage: ${key}`, { value: JSON.parse(value) });  // 新增日誌
         }
       });
+      await logger.info('Finished loading settings from localStorage');  // 新增日誌
     }
   }
 })

@@ -10,6 +10,8 @@ export function usePanelResize(initialWidth, side, minWidth = 200, maxWidthRatio
     const startX = e.clientX; // 起始位置
     const startWidth = width.value; // 起始寬度
 
+    document.body.style.userSelect = 'none'; // 禁止選取
+
     const resize = (e) => {
       let newWidth;
       if (side === 'left') {
@@ -25,6 +27,7 @@ export function usePanelResize(initialWidth, side, minWidth = 200, maxWidthRatio
     };
 
     const stopResize = () => {
+      document.body.style.userSelect = 'auto'; // 恢復選取
       document.removeEventListener('mousemove', resize); // 移除滑鼠移動事件
       document.removeEventListener('mouseup', stopResize); // 移除滑鼠釋放事件
     };

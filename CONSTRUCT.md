@@ -53,6 +53,6 @@
     - objects.js # 對象存儲
     - userPreferences.js # 用戶偏好存儲
   - views/ # 視圖
-    - Home.vue
+    - HomePage.vue
   - App.vue # 應用程序
   - main.js # 主入口

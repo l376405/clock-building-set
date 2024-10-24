@@ -4,7 +4,7 @@ import { storeToRefs } from 'pinia';
 export function useExportHTML() {
     const settings = settingsStore();
     const {
-        fontFamily,
+        //fontFamily,
         timeFormat,
         numberImageUrls,
         separatorImageUrl,
@@ -99,7 +99,7 @@ export function useExportHTML() {
             ${colonAnimationCSS}
         `;
 
-        const previewRect = preview.getBoundingClientRect();
+        //const previewRect = preview.getBoundingClientRect();
         const sortedObjects = objects.sort((a, b) => parseInt(a.element.style.zIndex) - parseInt(b.element.style.zIndex));
 
         const elementsHtml = sortedObjects.map(obj => {

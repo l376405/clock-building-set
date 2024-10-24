@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <Home />
+    <HomePage />
   </div>
 </template>
 
@@ -9,12 +9,12 @@
 import { useTitle } from '@vueuse/core'
 
 // 引入組件
-import Home from './views/Home.vue'
+import HomePage from './views/HomePage.vue'
 
 export default {
   name: 'App',
   components: {
-    Home
+    HomePage
   },
   setup() {
     const title = useTitle('時鐘設置')
@@ -30,6 +30,6 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  margin-top: 5px;
 }
 </style>

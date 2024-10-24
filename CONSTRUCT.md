@@ -5,19 +5,43 @@
     - images/ # 圖片
     - styles/ # 樣式
       - main.css # 全局樣式
-      - clock.css # 時鐘樣式
-      - leftSettings.css # 左側設置面板樣式
-      - rightObjectList.css # 右側對象列表樣式
+      - clockObject.css # 時鐘樣式
+      - dateObject.css # 日期樣式
+      - imageObject.css # 圖片樣式
+      - textObject.css # 文字樣式
+      - shapeObject.css # 圖形樣式
+      - panels.css # 左右面板樣式
+      - settingBlock.css # 設置面板樣式
+      - navbar.css # 導航欄樣式
   - components/ # 組件
-    - ClockDisplay.vue # 時鐘顯示組件
-    - LeftSettingsPanel.vue # 左側設置面板組件
-    - DateObject.vue # 日期對象組件
-    - RightObjectList.vue # 右側對象列表組件
+    - panels/ # 面板組件
+      - LeftPanel.vue # 左側面板組件
+      - RightPanel.vue # 右側面板組件
+      - ClockSetting.vue # 時鐘設置面板組件
+      - DateSetting.vue # 日期設置面板組件
+      - ObjectList.vue # 對象列表組件
+    - navbar/ # 導航欄組件
+      - TopNavbar.vue # 頂部導航欄組件
+      - UserSettings.vue # 用戶設置組件
+      - ExportArea.vue # 導出區組件
+      - ImageUpload.vue # 圖像上傳組件
+    - preview/ # 預覽組件
+      - PreviewArea.vue # 預覽區組件
+      - ClockObject.vue # 時鐘對象組件
+      - DateObject.vue # 日期對象組件
+      - ImageObject.vue # 圖片對象組件
+      - TextObject.vue # 文字對象組件
+      - ShapeObject.vue # 圖形對象組件
   - composables/ # 邏輯
-    - useClockLogic.js # 時鐘邏輯
+    - useClockObjectLogic.js # 時鐘邏輯
+    - useDateObjectLogic.js # 日期邏輯
+    - useImageObjectLogic.js # 圖片邏輯
+    - useTextObjectLogic.js # 文字邏輯
+    - useShapeObjectLogic.js # 圖形邏輯
+    - useObjectCommonLogic.js # 對象通用邏輯
     - useSettingsLogic.js # 設置邏輯
+    - usePanelResize.js # 面板調整邏輯
     - useObjectListLogic.js # 對象列表邏輯
-    - useDateObjectLogic.js # 日期對象邏輯
     - useExportHTML.js # 導出HTML邏輯
   - utils/
     - logger.js # 日誌工具
@@ -26,6 +50,8 @@
       - persistencePlugin.js # 持久化插件
       - LoggerPlugin.js # 日誌插件
     - settings.js # 設置存儲
+    - objects.js # 對象存儲
+    - userPreferences.js # 用戶偏好存儲
   - views/ # 視圖
     - Home.vue
   - App.vue # 應用程序

@@ -1,158 +1,159 @@
 <template>
     <div class="home">
-        <!-- 左側容器 -->
-        <div id="left-container" :style="{ width: `${leftWidth}px` }">
-            <!-- 以下引入左側面板 -->
-            <LeftSettingPanel />
+      <!-- 浮動面板 -->
+        <div class="floating-panels">
+            <!-- 頂部導航欄 -->
+            <component :is="components.TopNavbar" 
+                v-if="components.TopNavbar"
+                :class="{ 'panel-visible': topNavbarVisible }" 
+                @toggle="toggleTopNavbar"
+            />
+            <!-- 左側面板 -->
+            <component :is="components.LeftPanel"
+                v-if="components.LeftPanel"
+                :class="{ 'panel-visible': leftPanelVisible }" 
+                @toggle="toggleLeftPanel"
+                :style="{ width: `${leftWidth}px` }" >
+                <component :is="components.ClockSetting" v-if="components.ClockSetting" />
+                <component :is="components.DateSetting" v-if="components.DateSetting" />
+            </component>
+            <!-- 左側面板調整 -->
+            <div id="left-resizer" @mousedown="startLeftResize"></div>
+            <!-- 右側面板 -->
+            <component :is="components.RightPanel"
+                v-if="components.RightPanel"
+                :class="{ 'panel-visible': rightPanelVisible }" 
+                @toggle="toggleRightPanel"
+                :style="{ width: `${rightWidth}px` }" >
+                <component :is="components.ImageUpload" v-if="components.ImageUpload" />
+                <component :is="components.ObjectList" v-if="components.ObjectList" />
+            </component>
+            <!-- 右側面板調整 -->
+            <div id="right-resizer" @mousedown="startRightResize"></div>
         </div>
-        <!-- 左側調整器 -->
-        <div id="left-resizer"></div>
-
-        <!-- 中間容器 -->
-        <div id="center-container">
-            <div id="date-settings-panel-container">
-                <!-- 以下引入年月日設置面板 -->
-                <DateObjectList />
-            </div>
-            <div id="preview-container">
-                <!-- 以下引入時鐘顯示 -->
-                <ClockDisplay />
-            </div>
-            <button id="exportHTML" @click="exportHTML">匯出 HTML</button>
-        </div>
-
-        <!-- 右側調整器 -->
-        <div id="right-resizer"></div>
-        <!-- 右側容器 -->
-        <div id="right-container" :style="{ width: `${rightWidth}px` }">
-            <!-- 以下引入右側面板 -->
-            <RightObjectList />
-        </div>
+      <!-- 預覽區 -->
+        <component :is="components.PreviewArea"
+            v-if="components.PreviewArea"
+            ref="previewArea"
+            @toggle-top-navbar="toggleTopNavbar"
+            @toggle-left-panel="toggleLeftPanel"
+            @toggle-right-panel="toggleRightPanel"
+        />
     </div>
-</template>
-<script>
-    import { ref, onMounted} from 'vue';
+  </template>
+
+<script setup>
+    import { ref, onMounted } from 'vue';
     import { useSettingsStore } from '@/store/settings';
-    import RightObjectList from '@/components/RightObjectList.vue';
-    import ClockDisplay from '@/components/ClockDisplay.vue';
-    import DateObjectList from '@/components/DateObjectList.vue';
-    import LeftSettingPanel from '@/components/LeftSettingPanel.vue';
-    export default {
-        name: 'Home',
-        components: {
-            RightObjectList,
-            ClockDisplay,
-            DateObjectList,
-            LeftSettingPanel
-        },
-        setup() {
-            const settingsStore = useSettingsStore();
-            const leftWidth = ref(300);
-            const rightWidth = ref(300);
+    import { usePanelResize } from '@/composables/usePanelResize';
+    import { logger } from '@/utils/logger';
+    import { loadComponent } from '@/utils/componentLoader';
 
-            const startLeftResize = (e) => {
-                const startX = e.clientX;
-                const startWidth = leftWidth.value;
+    // 動態導入組件
+    const components = {
+        TopNavbar: loadComponent('@/components/navbar/TopNavbar.vue'),
+        LeftPanel: loadComponent('@/components/panels/LeftPanel.vue'),
+        RightPanel: loadComponent('@/components/panels/RightPanel.vue'),
+        ClockSetting: loadComponent('@/components/panels/ClockSetting.vue'),
+        DateSetting: loadComponent('@/components/panels/DateSetting.vue'),
+        ImageUpload: loadComponent('@/components/panels/ImageUpload.vue'),
+        ObjectList: loadComponent('@/components/panels/ObjectList.vue'),
+        PreviewArea: loadComponent('@/components/preview/PreviewArea.vue'),
+    };
 
-                const resize = (e) => {
-                    const newWidth = startWidth + e.clientX - startX;
-                    if (newWidth > 200 && newWidth < window.innerWidth / 2) {
-                        leftWidth.value = newWidth;
-                        settingsStore.updateSetting('leftPanelWidth', newWidth);
-                    }
-                };
+    const topNavbarVisible = ref(true);
+    const leftPanelVisible = ref(true);
+    const rightPanelVisible = ref(true);
 
-                const stopResize = () => {
-                    document.removeEventListener('mousemove', resize);
-                    document.removeEventListener('mouseup', stopResize);
-                };
+    const settingsStore = useSettingsStore();
 
-                document.addEventListener('mousemove', resize);
-                document.addEventListener('mouseup', stopResize);
-            };
+    const toggleTopNavbar = () => {
+        topNavbarVisible.value = !topNavbarVisible.value;
+    };
 
-            const startRightResize = (e) => {
-                const startX = e.clientX;
-                const startWidth = rightWidth.value;
+    const toggleLeftPanel = () => {
+        leftPanelVisible.value = !leftPanelVisible.value;
+    };
 
-                const resize = (e) => {
-                    const newWidth = startWidth - (e.clientX - startX);
-                    if (newWidth > 200 && newWidth < window.innerWidth / 2) {
-                        rightWidth.value = newWidth;
-                        settingsStore.updateSetting('rightPanelWidth', newWidth);
-                    }
-                };
+    const toggleRightPanel = () => {
+        rightPanelVisible.value = !rightPanelVisible.value;
+    };
 
-                const stopResize = () => {
-                    document.removeEventListener('mousemove', resize);
-                    document.removeEventListener('mouseup', stopResize);
-                };
+    // 左側面板調整
+    const { width: leftWidth, startResize: startLeftResize } = usePanelResize(300, 'left');
+    // 右側面板調整
+    const { width: rightWidth, startResize: startRightResize } = usePanelResize(300, 'right');
 
-                document.addEventListener('mousemove', resize);
-                document.addEventListener('mouseup', stopResize);
-            };
-
-            const exportHTML = () => {
-            // 實現匯出 HTML 的邏輯
-            };
-
-            onMounted(() => {
-                settingsStore.loadFromLocalStorage();
-                leftWidth.value = settingsStore.leftPanelWidth || 300;
-                rightWidth.value = settingsStore.rightPanelWidth || 300;
-            });
-
-            return {
-            leftWidth,
-            rightWidth,
-            startLeftResize,
-            startRightResize,
-            exportHTML
-            };
-        }
-    }
+    onMounted(async () => {
+        settingsStore.loadFromLocalStorage();
+        leftWidth.value = settingsStore.leftPanelWidth || 300;
+        rightWidth.value = settingsStore.rightPanelWidth || 300;
+        await logger.info('Home component mounted', { leftWidth: leftWidth.value, rightWidth: rightWidth.value });
+    });
 </script>
 <style scoped>
     .home {
-        display: flex;
-        height: 100vh;
-        overflow: hidden;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
     }
 
-    #left-container, #right-container {
-        overflow-y: auto;
+    .floating-panels {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
     }
 
-    #left-container {
-        border-right: 1px solid #ccc;
+    .floating-panels > * {
+    pointer-events: auto;
+    }
+
+    .top-navbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    }
+
+    .left-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 5;
+    }
+
+    .right-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 5;
     }
 
     #left-resizer, #right-resizer {
-        width: 5px;
-        background: #ccc;
-        cursor: col-resize;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    background: #ccc;
+    cursor: col-resize;
+    z-index: 6;
     }
 
-    #center-container {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
+    #left-resizer {
+    left: 300px; /* 初始位置，應與左面板寬度相同 */
     }
 
-    #right-container {
-        border-left: 1px solid #ccc;
+    #right-resizer {
+    right: 300px; /* 初始位置，應與右面板寬度相同 */
     }
 
-    #date-settings-panel-container {
-    /* 樣式 */
-    }
-
-    #preview-container {
-    flex: 1;
-    /* 其他樣式 */
-    }
-
-    #exportHTML {
-    /* 按鈕樣式 */
+    .panel-visible {
+    /* 可見狀態的樣式 */
     }
 </style>

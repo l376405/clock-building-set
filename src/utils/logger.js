@@ -27,11 +27,20 @@ class Logger {
         this.isDebugMode = isDebug;
     }
 
+    getCallerInfo() {
+        const error = new Error();
+        const stack = error.stack.split('\n');
+        // 我們需要第四行，因為第一行是 Error，第二行是 getCallerInfo，第三行是 log 方法
+        const caller = stack[3] ? stack[3].trim() : 'Unknown caller';
+        return caller;
+    }
+
     async log(level, message, details = null) {
         if (this.shouldLog(level)) {
-            const logMessage = this.formatMessage(level, message, details); // 格式化日誌消息
-            console.log(logMessage); // 保留控制台輸出
-            await this.saveToIndexedDB(level, message, details); // 保存日誌到 IndexedDB
+            const caller = this.getCallerInfo();
+            const logMessage = this.formatMessage(level, message, details, caller);
+            console.log(logMessage);
+            await this.saveToIndexedDB(level, message, details, caller);
         }
     }
 
@@ -40,9 +49,9 @@ class Logger {
         return levels.indexOf(level) <= levels.indexOf(this.logLevel); // 判斷是否應該記錄日誌
     }
 
-    formatMessage(level, message, details) {
+    formatMessage(level, message, details, caller) {
         const timestamp = new Date().toISOString(); // 獲取當前時間戳
-        let formattedMessage = `[${timestamp}] [${level.toUpperCase()}] ${message}`; // 格式化日誌消息
+        let formattedMessage = `[${timestamp}] [${level.toUpperCase()}] [${caller}] ${message}`; // 格式化日誌消息
         
         if (this.isDebugMode && details) { // 如果為調試模式且有詳細信息，則添加詳細信息
             formattedMessage += `\nDetails: ${JSON.stringify(details, null, 2)}`;
@@ -51,22 +60,23 @@ class Logger {
         return formattedMessage;
     }
 
-    async saveToIndexedDB(level, message, details) {
+    async saveToIndexedDB(level, message, details, caller) {
       const db = await this.dbPromise;
       if (!db) {
         console.warn('IndexedDB not available, skipping log storage'); // IndexedDB 不可用，跳過日誌存儲
         return;
       }
       const logEntry = {
-        timestamp: new Date().toISOString(), // 獲取當前時間戳
+        timestamp: new Date().toISOString(),
         level,
         message,
-        details: this.isDebugMode ? details : null, // 如果為調試模式且有詳細信息，則添加詳細信息
+        details: this.isDebugMode ? JSON.parse(JSON.stringify(details)) : null,
+        caller
       };
       try {
-          await db.add('logs', logEntry);
+        await db.add('logs', logEntry);
       } catch (error) {
-          console.error('Failed to save log to IndexedDB:', error); // 保存日誌到 IndexedDB 失敗
+        console.error('Failed to save log to IndexedDB:', error);
       }
     }
 

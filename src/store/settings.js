@@ -70,14 +70,12 @@ export const useSettingsStore = defineStore('settings', {
       const keys = path.split('.'); // 分割路徑
       let current = this; // 當前狀態
       await logger.debug('Updating setting', { path, value }); // 記錄更新設定
-      console.log('Updating setting', { path, value }); // 記錄更新設定
       for (let i = 0; i < keys.length - 1; i++) {
         current = current[keys[i]]; // 更新當前狀態
       }
       current[keys[keys.length - 1]] = value; // 更新當前狀態
       this.saveToLocalStorage(path, value); // 保存到本地儲存
       await logger.info('Updated setting', { path }); // 記錄更新設定
-      console.log('Updated setting', { path }); // 記錄更新設定
     },
     // 保存到本地儲存
     saveToLocalStorage(path, value) {

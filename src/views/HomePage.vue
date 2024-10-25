@@ -27,22 +27,6 @@
                         @toggle="toggleLeftPanel"
                         :style="{ width: `${leftWidth}px` }"
                     >
-                        <Suspense>
-                            <template #default>
-                                <component :is="components.ClockSetting" v-if="components.ClockSetting" />
-                            </template>
-                            <template #fallback>
-                                <div class="error-container">時鐘設置加載失敗</div>
-                            </template>
-                        </Suspense>
-                        <Suspense>
-                            <template #default>
-                                <component :is="components.DateSetting" v-if="components.DateSetting" />
-                            </template>
-                            <template #fallback>
-                                <div class="error-container">日期設置加載失敗</div>
-                            </template>
-                        </Suspense>
                     </component>
                 </template>
                 <template #fallback>
@@ -64,22 +48,6 @@
                         @toggle="toggleRightPanel"
                         :style="{ width: `${rightWidth}px` }"
                     >
-                        <Suspense>
-                            <template #default>
-                                <component :is="components.ImageUpload" v-if="components.ImageUpload" />
-                            </template>
-                            <template #fallback>
-                                <div class="error-container">圖片上傳加載失敗</div>
-                            </template>
-                        </Suspense>
-                        <Suspense>
-                            <template #default>
-                                <component :is="components.ObjectList" v-if="components.ObjectList" />
-                            </template>
-                            <template #fallback>
-                                <div class="error-container">對象列表加載失敗</div>
-                            </template>
-                        </Suspense>
                     </component>
                 </template>
                 <template #fallback>
@@ -143,7 +111,7 @@
 </template>
 
 <script setup>
-    import { onMounted, watch } from 'vue';
+    import { onMounted, ref, watch } from 'vue';
     import { useSettingsStore } from '@/store/settings';
     import { usePanelResize } from '@/composables/usePanelResize';
     import { usePanelToggle } from '@/composables/usePanelToggle';
@@ -151,16 +119,12 @@
     import { loadComponent } from '@/utils/componentLoader';
 
     // 動態導入組件
-    const components = {
+    const components = ref({
         TopNavbar: loadComponent('@/components/navbar/TopNavbar.vue'),
         LeftPanel: loadComponent('@/components/panels/LeftPanel.vue'),
         RightPanel: loadComponent('@/components/panels/RightPanel.vue'),
-        ClockSetting: loadComponent('@/components/panels/ClockSetting.vue'),
-        DateSetting: loadComponent('@/components/panels/DateSetting.vue'),
-        ImageUpload: loadComponent('@/components/panels/ImageUpload.vue'),
-        ObjectList: loadComponent('@/components/panels/ObjectList.vue'),
         PreviewArea: loadComponent('@/components/preview/PreviewArea.vue'),
-    };
+    });
 
     const {
         topNavbarVisible,
@@ -179,13 +143,7 @@
     // 面板調整
     const { startResize: startLeftResize } = usePanelResize(leftWidth, 'left'); // 左側面板調整
     const { startResize: startRightResize } = usePanelResize(rightWidth, 'right'); // 右側面板調整
-    // 監聽面板寬度變化
-    watch(leftWidth, (newWidth) => {
-        settingsStore.updateSetting('leftPanelWidth', newWidth); // 更新左側面板寬度
-    });
-    watch(rightWidth, (newWidth) => {
-        settingsStore.updateSetting('rightPanelWidth', newWidth); // 更新右側面板寬度
-    });
+
     watch(leftPanelVisible, (newVisible) => {
         settingsStore.updateSetting('leftPanelVisible', newVisible); // 更新左側面板可見性
     });
@@ -246,7 +204,7 @@
         pointer-events: none;
         overflow: hidden;
         z-index: 2;
-        isolation: isolate;
+        isolation: isolate; /* 創建新的堆疊上下文 */
     }
 
     .floating-panels > * {
@@ -272,13 +230,15 @@
         height: 4vh;
         width: 97vw;
         min-height: 50px;
+        z-index: 1002;
     }
 
     .left-panel, .right-panel {
         position: absolute;
-        top: 6vh;
+        top: calc(6vh + 10px);
         bottom: 1vh;
         overflow: hidden;
+        z-index: 1000;
     }
 
     .left-panel.panel-animating,

@@ -1,6 +1,6 @@
 .resizer {
     position: absolute;
-    top: 7.2vh;
+    top: calc(7.2vh + 10px);
     bottom: 2vh;
     width: 8px;
     background: #cccccc;

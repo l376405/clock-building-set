@@ -1,42 +1,61 @@
-import { ref } from 'vue';
+import { ref, onUnmounted } from 'vue';
 import { useSettingsStore } from '@/store/settings';
+import { debounce } from 'lodash';
 
-// 面板調整邏輯(初始寬度, 面板方向, 最小寬度, 最大寬度比例)
 export function usePanelResize(initialWidth, side, minWidth = 200, maxWidthRatio = 0.5) {
-  const width = ref(initialWidth); // 面板寬度
-  const settingsStore = useSettingsStore(); // 設定儲存邏輯
+  const width = ref(initialWidth);
+  const settingsStore = useSettingsStore();
+  let isResizing = false;
+
+  // 使用 debounce 來限制更新設置的頻率
+  const debouncedUpdateSetting = debounce((newWidth) => {
+    settingsStore.updateSetting(`${side}PanelWidth`, newWidth);
+  }, 3); // 3ms 延遲，可以根據需要調整
 
   const startResize = (e) => {
-    const startX = e.clientX; // 起始位置
-    const startWidth = width.value; // 起始寬度
+    if (isResizing) return;
+    isResizing = true;
 
-    document.body.style.userSelect = 'none'; // 禁止選取
+    const startX = e.clientX;
+    const startWidth = width.value;
+
+    document.body.style.userSelect = 'none';
 
     const resize = (e) => {
       let newWidth;
       if (side === 'left') {
-        newWidth = startWidth + e.clientX - startX; // 左側面板調整
+        newWidth = startWidth + e.clientX - startX;
       } else {
-        newWidth = startWidth - (e.clientX - startX); // 右側面板調整
+        newWidth = startWidth - (e.clientX - startX);
       }
 
       if (newWidth > minWidth && newWidth < window.innerWidth * maxWidthRatio) {
-        width.value = newWidth; // 更新面板寬度
-        settingsStore.updateSetting(`${side}PanelWidth`, newWidth); // 更新設定
+        // 即時更新視覺效果
+        width.value = newWidth;
+        // 延遲更新設置
+        debouncedUpdateSetting(newWidth);
       }
     };
 
     const stopResize = () => {
-      document.body.style.userSelect = 'auto'; // 恢復選取
-      document.removeEventListener('mousemove', resize); // 移除滑鼠移動事件
-      document.removeEventListener('mouseup', stopResize); // 移除滑鼠釋放事件
+      isResizing = false;
+      document.body.style.userSelect = 'auto';
+      document.removeEventListener('mousemove', resize);
+      document.removeEventListener('mouseup', stopResize);
+      // 在停止調整大小時立即更新設置
+      settingsStore.updateSetting(`${side}PanelWidth`, width.value);
     };
 
-    document.addEventListener('mousemove', resize); // 添加滑鼠移動事件
-    document.addEventListener('mouseup', stopResize); // 添加滑鼠釋放事件
+    document.addEventListener('mousemove', resize);
+    document.addEventListener('mouseup', stopResize);
   };
 
-  // 返回面板寬度和開始調整函數
+  // 確保在組件卸載時清理事件監聽器
+  onUnmounted(() => {
+    document.removeEventListener('mousemove', resize);
+    document.removeEventListener('mouseup', stopResize);
+  });
+
   return {
     width,
     startResize

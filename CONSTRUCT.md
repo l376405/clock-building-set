@@ -41,6 +41,7 @@
     - useObjectCommonLogic.js # 對象通用邏輯
     - useSettingsLogic.js # 設置邏輯
     - usePanelResize.js # 面板調整邏輯
+    - usePanelToggle.js # 面板切換邏輯
     - useObjectListLogic.js # 對象列表邏輯
     - useExportHTML.js # 導出HTML邏輯
   - utils/

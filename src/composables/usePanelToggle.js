@@ -7,21 +7,14 @@ export function usePanelToggle() {
   const isLeftPanelAnimating = ref(false);
   const isRightPanelAnimating = ref(false);
 
-  const leftWidth = computed(() => settingsStore.leftPanelVisible ? (settingsStore.leftPanelWidth || 300) : 0);
-  const rightWidth = computed(() => settingsStore.rightPanelVisible ? (settingsStore.rightPanelWidth || 300) : 0);
-
   const leftPanelVisible = computed({
     get: () => settingsStore.leftPanelVisible,
-    set: (value) => {
-      settingsStore.updateSetting('leftPanelVisible', value);
-    }
+    set: (value) => settingsStore.updateSetting('leftPanelVisible', value)
   });
 
   const rightPanelVisible = computed({
     get: () => settingsStore.rightPanelVisible,
-    set: (value) => {
-      settingsStore.updateSetting('rightPanelVisible', value);
-    }
+    set: (value) => settingsStore.updateSetting('rightPanelVisible', value)
   });
 
   const toggleTopNavbar = () => {
@@ -30,22 +23,18 @@ export function usePanelToggle() {
 
   const toggleLeftPanel = () => {
     isLeftPanelAnimating.value = true;
+    leftPanelVisible.value = !leftPanelVisible.value;
     setTimeout(() => {
-      leftPanelVisible.value = !leftPanelVisible.value;
-      setTimeout(() => {
-        isLeftPanelAnimating.value = false;
-      }, 300);
-    }, 10);
+      isLeftPanelAnimating.value = false;
+    }, 300);
   };
 
   const toggleRightPanel = () => {
     isRightPanelAnimating.value = true;
+    rightPanelVisible.value = !rightPanelVisible.value;
     setTimeout(() => {
-      rightPanelVisible.value = !rightPanelVisible.value;
-      setTimeout(() => {
-        isRightPanelAnimating.value = false;
-      }, 300);
-    }, 10);
+      isRightPanelAnimating.value = false;
+    }, 300);
   };
 
   return {
@@ -53,8 +42,6 @@ export function usePanelToggle() {
     rightPanelVisible,
     isLeftPanelAnimating,
     isRightPanelAnimating,
-    leftWidth,
-    rightWidth,
     toggleTopNavbar,
     toggleLeftPanel,
     toggleRightPanel

@@ -21,14 +21,14 @@
     </div>
 </template>
 <script setup>
-    import { ref, onMounted } from 'vue';
+    import { shallowRef, onMounted } from 'vue';
     import { useSettingsStore } from '@/store/settings';
     import { logger } from '@/utils/logger';
     import { loadComponent } from '@/utils/componentLoader';
 
-    const components = ref({
-        ImageUpload: loadComponent('@/components/panels/ImageUpload.vue'),
-        ObjectList: loadComponent('@/components/panels/ObjectList.vue'),
+    const components = shallowRef({
+        ImageUpload: loadComponent('@/components/navbar/ImageUpload.vue'),
+        ObjectList: loadComponent('@/components/navbar/ObjectList.vue'),
     });
 
     onMounted(async () => {

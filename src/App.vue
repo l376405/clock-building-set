@@ -1,26 +1,40 @@
 <template>
   <div id="app">
-    <HomePage />
+    <LoadingAnimation v-show="isLoading" />
+    <HomePage @components-loaded="onComponentsLoaded" />
   </div>
 </template>
 
-<script>
-//import HelloWorld from './components/HelloWorld.vue'
-import { useTitle } from '@vueuse/core'
+<script setup>
+  import { ref, onMounted } from 'vue'
+  import { useTitle } from '@vueuse/core'
+  import HomePage from './views/HomePage.vue'
+  import LoadingAnimation from './components/LoadingAnimation.vue'
 
-// 引入組件
-import HomePage from './views/HomePage.vue'
+  useTitle('Clock Creator -- 給你的網頁時鐘來點自己的創意吧')
 
-export default {
-  name: 'App',
-  components: {
-    HomePage
-  },
-  setup() {
-    const title = useTitle('時鐘設置')
-    return { title }
+  const isLoading = ref(true)
+
+  onMounted(() => {
+    // 5秒後強制結束加載
+    setTimeout(() => {
+      if (isLoading.value) {
+        console.warn('Loading timeout, forcing component display');
+        isLoading.value = false;
+      }
+    }, 5000);
+  });
+
+  const hideLoadingWithDelay = () => {
+    setTimeout(() => {
+      isLoading.value = false;
+    }, 500); // 500毫秒的延遲，您可以根據需要調整這個值
   }
-}
+
+  const onComponentsLoaded = () => {
+    console.log('Components loaded event received');
+    hideLoadingWithDelay();
+  }
 </script>
 
 <style>
@@ -31,5 +45,6 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-top: 5px;
+  height: 100vh;
 }
 </style>

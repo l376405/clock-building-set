@@ -67,15 +67,17 @@ export const useSettingsStore = defineStore('settings', {
   actions: {
     //更新設定
     async updateSetting(path, value) {
-      const keys = path.split('.'); // 分割路徑
-      let current = this; // 當前狀態
-      await logger.debug('Updating setting', { path, value }); // 記錄更新設定
+      const keys = path.split('.');
+      let current = this;
       for (let i = 0; i < keys.length - 1; i++) {
-        current = current[keys[i]]; // 更新當前狀態
+        if (!current[keys[i]]) {
+          current[keys[i]] = {};
+        }
+        current = current[keys[i]];
       }
-      current[keys[keys.length - 1]] = value; // 更新當前狀態
-      this.saveToLocalStorage(path, value); // 保存到本地儲存
-      await logger.info('Updated setting', { path }); // 記錄更新設定
+      current[keys[keys.length - 1]] = value;
+      this.saveToLocalStorage(path, value);
+      await logger.info('Updated setting', { path, value });
     },
     // 保存到本地儲存
     saveToLocalStorage(path, value) {

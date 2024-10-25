@@ -1,9 +1,9 @@
 # 專案結構
 
 - src/
-  - assets/ # 資源文件
-    - images/ # 圖片
-    - styles/ # 樣式
+  - assets/ # 資源文件資料夾
+    - images/ # 圖片資料夾
+    - styles/ # 樣式資料夾
       - main.css # 全局樣式
       - clockObject.css # 時鐘樣式
       - dateObject.css # 日期樣式
@@ -13,26 +13,27 @@
       - panels.css # 左右面板樣式
       - settingBlock.css # 設置面板樣式
       - navbar.css # 導航欄樣式
-  - components/ # 組件
-    - panels/ # 面板組件
+  - components/ # 組件資料夾
+    - LoadingAnimation.vue # 加載動畫組件
+    - panels/ # 面板組件資料夾
       - LeftPanel.vue # 左側面板組件
       - RightPanel.vue # 右側面板組件
       - ClockSetting.vue # 時鐘設置面板組件
       - DateSetting.vue # 日期設置面板組件
       - ObjectList.vue # 對象列表組件
-    - navbar/ # 導航欄組件
+    - navbar/ # 導航欄組件資料夾
       - TopNavbar.vue # 頂部導航欄組件
       - UserSettings.vue # 用戶設置組件
       - ExportArea.vue # 導出區組件
       - ImageUpload.vue # 圖像上傳組件
-    - preview/ # 預覽組件
+    - preview/ # 預覽組件資料夾
       - PreviewArea.vue # 預覽區組件
       - ClockObject.vue # 時鐘對象組件
       - DateObject.vue # 日期對象組件
       - ImageObject.vue # 圖片對象組件
       - TextObject.vue # 文字對象組件
       - ShapeObject.vue # 圖形對象組件
-  - composables/ # 邏輯
+  - composables/ # 邏輯資料夾
     - useClockObjectLogic.js # 時鐘邏輯
     - useDateObjectLogic.js # 日期邏輯
     - useImageObjectLogic.js # 圖片邏輯
@@ -44,16 +45,16 @@
     - usePanelToggle.js # 面板切換邏輯
     - useObjectListLogic.js # 對象列表邏輯
     - useExportHTML.js # 導出HTML邏輯
-  - utils/
+  - utils/ # 工具資料夾
     - logger.js # 日誌工具
-  - store/ # 存儲
+  - store/ # 存儲資料夾
     - plugins/ # 插件
       - persistencePlugin.js # 持久化插件
       - LoggerPlugin.js # 日誌插件
     - settings.js # 設置存儲
     - objects.js # 對象存儲
     - userPreferences.js # 用戶偏好存儲
-  - views/ # 視圖
+  - views/ # 視圖資料夾
     - HomePage.vue
   - App.vue # 應用程序
   - main.js # 主入口

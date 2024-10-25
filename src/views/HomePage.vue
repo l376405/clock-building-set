@@ -25,13 +25,13 @@
                         v-if="components.LeftPanel"
                         :class="{ 'panel-visible': leftPanelVisible, 'panel-animating': isLeftPanelAnimating }" 
                         @toggle="toggleLeftPanel"
-                        :style="{ width: `${leftWidth}px` }"
+                        :style="{ width: `${displayLeftWidth}px` }"
                     >
                     </component>
                 </template>
                 <template #fallback>
                     <div class="left-panel panel-visible error-container" 
-                        :style="{ width: `${leftWidth}px` }"
+                        :style="{ width: `${displayLeftWidth}px` }"
                         :class="{ 'panel-animating': isLeftPanelAnimating }"
                     >
                         左側面板加載失敗
@@ -46,14 +46,14 @@
                         v-if="components.RightPanel"
                         :class="{ 'panel-visible': rightPanelVisible, 'panel-animating': isRightPanelAnimating }" 
                         @toggle="toggleRightPanel"
-                        :style="{ width: `${rightWidth}px` }"
+                        :style="{ width: `${displayRightWidth}px` }"
                     >
                     </component>
                 </template>
                 <template #fallback>
                     <div 
                     class="right-panel panel-visible error-container" 
-                        :style="{ width: `${rightWidth}px` }"
+                        :style="{ width: `${displayRightWidth}px` }"
                         :class="{ 'panel-animating': isRightPanelAnimating }"
                     >
                         右側面板加載失敗
@@ -64,12 +64,12 @@
             <!-- 左側面板調整 -->
             <div id="left-resizer" class="resizer"
                 @mousedown="startLeftResize"
-                :style="{ left: `calc(1vw + ${leftWidth - 3}px)` }"
+                :style="{ left: `calc(1vw + ${displayLeftWidth - 3}px)` }"
                 :class="{ 'panel-animating': isLeftPanelAnimating }"
             ></div>
             <div class="toggle-button left" 
                 @click="toggleLeftPanel" 
-                :style="{ left: `calc(1vw + ${leftWidth+4}px)` }" 
+                :style="{ left: `calc(1vw + ${displayLeftWidth+4}px)` }" 
                 :class="{ 'panel-animating': isLeftPanelAnimating }"
             >
                 {{ leftPanelVisible ? '◀' : '▶' }}
@@ -78,12 +78,12 @@
             <!-- 右側面板調整 -->
             <div id="right-resizer" class="resizer"
                 @mousedown="startRightResize"
-                :style="{ right: `calc(1vw + ${rightWidth - 3}px)` }"
+                :style="{ right: `calc(1vw + ${displayRightWidth - 3}px)` }"
                 :class="{ 'panel-animating': isRightPanelAnimating }"
             ></div>
             <div class="toggle-button right" 
                 @click="toggleRightPanel" 
-                :style="{ right: `calc(1vw + ${rightWidth+4}px)` }" 
+                :style="{ right: `calc(1vw + ${displayRightWidth+4}px)` }" 
                 :class="{ 'panel-animating': isRightPanelAnimating }"
             >
                 {{ rightPanelVisible ? '▶' : '◀' }}
@@ -111,27 +111,28 @@
 </template>
 
 <script setup>
-    import { onMounted, ref, watch } from 'vue';
+    import { shallowRef, computed, ref, onMounted, onUnmounted } from 'vue';
     import { useSettingsStore } from '@/store/settings';
     import { usePanelResize } from '@/composables/usePanelResize';
     import { usePanelToggle } from '@/composables/usePanelToggle';
-    import { logger } from '@/utils/logger';
     import { loadComponent } from '@/utils/componentLoader';
 
+    const emit = defineEmits(['components-loaded']);
+
     // 動態導入組件
-    const components = ref({
-        TopNavbar: loadComponent('@/components/navbar/TopNavbar.vue'),
-        LeftPanel: loadComponent('@/components/panels/LeftPanel.vue'),
-        RightPanel: loadComponent('@/components/panels/RightPanel.vue'),
-        PreviewArea: loadComponent('@/components/preview/PreviewArea.vue'),
+    const components = shallowRef({
+        TopNavbar: loadComponent(() => import('@/components/navbar/TopNavbar.vue')),
+        LeftPanel: loadComponent(() => import('@/components/panels/LeftPanel.vue')),
+        RightPanel: loadComponent(() => import('@/components/panels/RightPanel.vue')),
+        PreviewArea: loadComponent(() => import('@/components/preview/PreviewArea.vue')),
     });
+
+    const settingsStore = useSettingsStore();
 
     const {
         topNavbarVisible,
         leftPanelVisible,
         rightPanelVisible,
-        leftWidth,
-        rightWidth,
         toggleTopNavbar,
         toggleLeftPanel,
         toggleRightPanel,
@@ -139,21 +140,45 @@
         isRightPanelAnimating
     } = usePanelToggle();
 
-    const settingsStore = useSettingsStore();
-    // 面板調整
-    const { startResize: startLeftResize } = usePanelResize(leftWidth, 'left'); // 左側面板調整
-    const { startResize: startRightResize } = usePanelResize(rightWidth, 'right'); // 右側面板調整
-
-    watch(leftPanelVisible, (newVisible) => {
-        settingsStore.updateSetting('leftPanelVisible', newVisible); // 更新左側面板可見性
-    });
-    watch(rightPanelVisible, (newVisible) => {
-        settingsStore.updateSetting('rightPanelVisible', newVisible); // 更新右側面板可見性
-    });
+    const windowWidth = ref(window.innerWidth);
+    const updateWindowWidth = () => {
+        windowWidth.value = window.innerWidth;
+    };
 
     onMounted(async () => {
-        await settingsStore.loadFromLocalStorage();
-        await logger.info('HomePage component mounted', { leftWidth: leftWidth.value, rightWidth: rightWidth.value });
+        window.addEventListener('resize', updateWindowWidth);
+        try {
+            await logger.info('HomePage mounted');
+            await Promise.all(Object.values(components.value).map(comp => comp()));
+            emit('components-loaded');
+        } catch (error) {
+            console.error('Error loading components:', error);
+            // 即使出錯也發送事件，以避免無限加載
+            emit('components-loaded');
+        }
+    });
+
+    onUnmounted(async () => {
+        window.removeEventListener('resize', updateWindowWidth);
+        await logger.info('HomePage unmounted');
+    });
+
+    // 面板調整
+    const { width: leftWidth, startResize: startLeftResize, isPanelVisible: isLeftPanelVisible } = usePanelResize('left');
+    const { width: rightWidth, startResize: startRightResize, isPanelVisible: isRightPanelVisible } = usePanelResize('right');
+    
+
+    // 計算實際顯示寬度
+    const maxPanelWidth = computed(() => windowWidth.value * 0.4); // 最大寬度為窗口寬度的 40%
+
+    const displayLeftWidth = computed(() => {
+        if (!leftPanelVisible.value) return 0;
+        return Math.min(leftWidth.value, maxPanelWidth.value);
+    });
+
+    const displayRightWidth = computed(() => {
+        if (!rightPanelVisible.value) return 0;
+        return Math.min(rightWidth.value, maxPanelWidth.value);
     });
 </script>
 
@@ -186,6 +211,7 @@
     }
 
     .preview-area {
+        border-radius: 20px; /* 圓角 */
         flex-grow: 1;
         width: 100%;
         height: 100%;

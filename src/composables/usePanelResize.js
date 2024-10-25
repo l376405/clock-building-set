@@ -1,56 +1,59 @@
-import { ref, onUnmounted } from 'vue';
+import { ref, onUnmounted, watch } from 'vue';
 import { useSettingsStore } from '@/store/settings';
-import { debounce } from 'lodash';
 
-export function usePanelResize(initialWidth, side, minWidth = 200, maxWidthRatio = 0.5) {
-  const width = ref(initialWidth);
+export function usePanelResize(side) {
   const settingsStore = useSettingsStore();
+  const width = ref(settingsStore[`${side}PanelWidth`]);
+  const isPanelVisible = ref(settingsStore[`${side}PanelVisible`]);
   let isResizing = false;
+  let startX = 0;
+  let startWidth = 0;
 
-  // 使用 debounce 來限制更新設置的頻率
-  const debouncedUpdateSetting = debounce((newWidth) => {
-    settingsStore.updateSetting(`${side}PanelWidth`, newWidth);
-  }, 3); // 3ms 延遲，可以根據需要調整
+  const resize = (e) => {
+    if (!isResizing || !isPanelVisible.value) return;
+
+    let newWidth;
+    if (side === 'left') {
+      newWidth = startWidth + e.clientX - startX;
+    } else {
+      newWidth = startWidth - (e.clientX - startX);
+    }
+
+    const minWidth = 200;
+    const maxWidth = window.innerWidth * 0.4;
+
+    if (newWidth > minWidth && newWidth < maxWidth) {
+      width.value = newWidth;
+    }
+  };
+
+  const stopResize = () => {
+    if (!isResizing) return;
+
+    isResizing = false;
+    document.body.style.userSelect = 'auto';
+    document.removeEventListener('mousemove', resize);
+    document.removeEventListener('mouseup', stopResize);
+    // 只在停止調整大小時更新設置
+    settingsStore.updateSetting(`${side}PanelWidth`, width.value);
+  };
 
   const startResize = (e) => {
-    if (isResizing) return;
+    if (isResizing || !isPanelVisible.value) return;
+
     isResizing = true;
-
-    const startX = e.clientX;
-    const startWidth = width.value;
-
+    startX = e.clientX;
+    startWidth = width.value;
     document.body.style.userSelect = 'none';
-
-    const resize = (e) => {
-      let newWidth;
-      if (side === 'left') {
-        newWidth = startWidth + e.clientX - startX;
-      } else {
-        newWidth = startWidth - (e.clientX - startX);
-      }
-
-      if (newWidth > minWidth && newWidth < window.innerWidth * maxWidthRatio) {
-        // 即時更新視覺效果
-        width.value = newWidth;
-        // 延遲更新設置
-        debouncedUpdateSetting(newWidth);
-      }
-    };
-
-    const stopResize = () => {
-      isResizing = false;
-      document.body.style.userSelect = 'auto';
-      document.removeEventListener('mousemove', resize);
-      document.removeEventListener('mouseup', stopResize);
-      // 在停止調整大小時立即更新設置
-      settingsStore.updateSetting(`${side}PanelWidth`, width.value);
-    };
-
     document.addEventListener('mousemove', resize);
     document.addEventListener('mouseup', stopResize);
   };
 
-  // 確保在組件卸載時清理事件監聽器
+  // 監聽面板可見性變化
+  watch(() => settingsStore[`${side}PanelVisible`], (newValue) => {
+    isPanelVisible.value = newValue;
+  });
+
   onUnmounted(() => {
     document.removeEventListener('mousemove', resize);
     document.removeEventListener('mouseup', stopResize);
@@ -58,6 +61,7 @@ export function usePanelResize(initialWidth, side, minWidth = 200, maxWidthRatio
 
   return {
     width,
-    startResize
+    startResize,
+    isPanelVisible
   };
 }

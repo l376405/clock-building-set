@@ -1,0 +1,2229 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>時鐘設置</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC&family=Roboto&display=swap" rel="stylesheet">
+    <style>
+        /* 全局樣式 */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 動畫初始秒數設置 */
+        :root {
+            --digit-animation-duration: 0.5s;
+        }
+
+        /* 間距樣式 */
+        .spacer {
+            height: 15px; /* 調整這個值來控制間距 */
+        }
+
+        /* 設置面板樣式 */
+        #settings {
+            height: 100vh; /* 使設置區域佔滿整個視窗高度 */
+            width: 100%;
+            min-width: 390px;
+            max-width: 800px;
+            overflow-y: auto;
+            padding: 10px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 左邊標題樣式 */
+        .settings-title {
+            font-weight: bold;
+            margin: auto 0 20px 0; /* 上邊距自動，下邊距 20px，左右邊距 0 */
+            padding: 2px 0;
+            border-bottom: 1px solid #ccc;
+            width: 100%;
+        }
+
+        /* 左邊內容區域樣式 */
+        .settings-content {
+            display: grid;
+            gap: 10px;
+            width: 100%; /* 確保 settings-content 佔滿整個寬度 */
+            flex-grow: 1; /* 允許內容區域填充剩餘空間 */
+            overflow-y: auto; /* 如果內容過多，允許滾動 */
+        }
+
+        /* 設置群組樣式 */
+        .setting-group {
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            width: 100%; /* 確保 setting-group 佔滿整個寬度 */
+            box-sizing: border-box; /* 確保 padding 不會增加元素的總寬度 */
+        }
+
+        /* 設置群組標題樣式 */
+        .setting-group h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+            font-size: 1em;
+        }
+
+        /* 設置項目樣式 */
+        .setting-item {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        /* 設置項目標籤樣式 */
+        .setting-item label {
+            flex: 0 0 100%;
+            margin-bottom: 5px;
+        }
+
+        /* 設置項目輸入框樣式 */
+        .setting-item input[type="text"],
+        .setting-item input[type="number"]{
+            width: 120px;
+        }
+
+        /* 設置項目顏色選擇器樣式 */
+        .setting-item input[type="color"] {
+            width: 50px;
+        }
+
+        /* 分隔符輸入框樣式 */
+        #separatorInput {
+            width: 30px;
+        }
+
+        /* CSS編輯器樣式 */
+        #cssEditor, #digitExitAnimation, #digitEnterAnimation, #colonAnimationKeyframes, #colonAnimationProperties {
+            width: 100%;
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        /* 寬選擇器樣式 */
+        .wide-select {
+            width: 100%;
+            max-width: 300px;
+            background-color: #ffffff; /* 添加背景色以便於識別 */
+            padding: 2px; /* 添加內邊距 */
+            border: 2px solid #02285128; /* 添加邊框 */
+        }
+
+        /* 字體設置樣式 */
+        .font-setting-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        /* 字體選擇器樣式 */
+        .font-select-container {
+            flex: 1 1 60%;
+            margin-right: 10px;
+        }
+
+        /* 自定義字體輸入框樣式 */
+        .font-input-container {
+            display: flex;
+            align-items: center;
+            flex: 1 1 35%;
+        }
+
+        /* 字體選擇器樣式 */
+        #fontSelect {
+            width: 100%;
+        }
+
+        /* 自定義字體輸入框樣式 */
+        #customFontInput {
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* 新增自定義字體按鈕樣式 */
+        #addCustomFontBtn {
+            margin-left: 5px;
+            white-space: nowrap;
+        }
+
+        /* 設置項目行樣式 */
+        .setting-item-row {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        /* 設置項目列樣式 */
+        .setting-item-col {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        /* 圖片上傳樣式 */
+        .image-upload-item {
+            display: grid;
+            grid-template-columns: 120px 1fr auto auto;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        /* 圖片上傳項目標籤樣式 */
+        .image-upload-item label {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* 圖片上傳項目輸入框樣式 */
+        .image-upload-item input[type="file"] {
+            min-width: 0;
+        }
+
+        /* 圖片上傳項目圖片樣式 */
+        .image-upload-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+        }
+
+        /* 圖片上傳項目按鈕樣式 */
+        .image-upload-item button {
+            white-space: nowrap;
+        }
+
+        /* 預覽區域樣式 */
+        #main-content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* 預覽區域樣式 */
+        #preview-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            padding-top: 80px;
+        }
+
+        /* 預覽區域樣式 */
+        #preview {
+            border: 1px solid #ccc;
+            width: 100%;
+            max-width: 1000px;
+            aspect-ratio: 16 / 9;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 時鐘樣式 */
+        .clock {
+            font-size: 5rem;
+            display: flex;
+            align-items: center;
+            position: absolute;
+        }
+
+        /* 數字樣式 */
+        .digit {
+            display: inline-block;
+            position: relative;
+            overflow: hidden;
+            width: 1ch;
+            height: 1.2em;
+            line-height: 1.2em;
+        }
+
+        /* 數字子元素樣式 */
+        .digit > * {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            transition: transform var(--digit-animation-duration);
+        }
+
+        /* 數字子元素樣式 */
+        .digit span:not(.new):not(.old) {
+            transform: translateY(0);
+        }
+
+        /* 數字子元素樣式 */
+        .digit span.new {
+            transform: translateY(100%);
+        }
+
+        /* 數字子元素樣式 */
+        .digit.changing span.old {
+            transform: translateY(-100%);
+        }
+
+        /* 數字子元素樣式 */
+        .digit.changing span.new {
+            transform: translateY(0);
+        }
+
+        /* 冒號樣式 */
+        .colon {
+            display: inline-block;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            height: 1.2em;
+        }
+
+        /* AM/PM樣式 */
+        .ampm {
+            display: inline-block;
+            font-size: 0.5em;
+            vertical-align: super;
+        }
+
+        /* AM/PM間距樣式 */
+        .space {
+            display: inline-block;
+            width: 0.5em;
+        }
+
+        /* 時鐘數字和分隔符樣式 */
+        .clock-number, .clock-separator {
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .number-image, .separator-image {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+        }
+
+        /* 日期物件樣式 */
+        .date-object {
+            font-size: 5rem;
+            display: flex;
+            align-items: center;
+            position: absolute;
+            white-space: nowrap;
+        }
+
+        /* 右側面板樣式 */
+        #right-panel {
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+            border-left: 1px solid #ccc;
+        }
+
+        /* 右側列表圖片上傳樣式 */
+        #imageUpload {
+            margin-bottom: 20px;
+        }
+
+        /* 右側列表樣式 */
+        #objectList {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        /* 右側列表標題樣式 */
+        .object-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        /* 右側列表編輯模式容器樣式 */
+        .edit-mode-container {
+            display: flex;
+            align-items: center;
+        }
+
+        /* 右側列表標籤樣式 */
+        .edit-mode-container label {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        /* 右側列表編輯模式輸入框樣式 */
+        .edit-mode-container input[type="checkbox"] {
+            margin-left: 5px;
+        }
+
+        /* 右側列表物件樣式 */
+        .object-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .object-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            margin-right: 10px;
+        }
+
+        .object-item input {
+            flex: 1;
+        }
+
+        /* 右側列表圖片項目樣式 */
+        .image-item {
+            display: inline-block;
+            margin: 5px;
+            position: relative;
+        }
+
+        .image-item img {
+            cursor: pointer;
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+        }
+
+        .image-item .remove {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: red;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            text-align: center;
+            line-height: 20px;
+            cursor: pointer;
+        }
+
+        /* 右側列表刪除按鈕樣式 */
+        .list-delete-btn {
+            cursor: pointer;
+            color: red;
+            margin-left: 10px;
+            font-weight: bold;
+        }
+
+        /* 可排序列表樣式 */
+        #sortableList {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        /* 可排序列表項目樣式 */
+        #sortableList li {
+            padding: 10px;
+            background-color: #f0f0f0;
+            margin-bottom: 5px;
+            cursor: move;
+            display: flex;
+            align-items: center;
+        }
+
+        /* 可排序列表項目圖片樣式 */
+        #sortableList li img {
+            width: 30px;
+            height: 30px;
+            object-fit: cover;
+            margin-right: 10px;
+        }
+
+        /* 可排序列表項目輸入框樣式 */
+        #sortableList li input {
+            flex: 1;
+            margin-left: 10px;
+        }
+
+        /* 水平面板樣式 */
+        .horizontal-panel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-bottom: 1px solid #ccc;
+        }
+
+        /* 水平面板標題樣式 */
+        .horizontal-panel .panel-header {
+            background-color: #e0e0e0;
+            padding: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        /* 水平面板內容樣式 */
+        .horizontal-panel .panel-content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 10px;
+            overflow-y: auto;
+            transition: visibility 0s, opacity 0.3s linear;
+            opacity: 1;
+            visibility: visible;
+            height: auto;
+            max-height: 300px;
+        }
+
+        /* 水平面板內容縮小樣式 */
+        .horizontal-panel .panel-content.collapsed {
+            padding: 0 10px;
+            opacity: 0;
+            visibility: hidden;
+            height: 0;
+            overflow: hidden;
+            transition: visibility 0s 0.3s, opacity 0.3s linear, height 0.3s linear, padding 0.3s linear;
+        }
+
+        /* 水平面板內容項目樣式 */
+        .horizontal-panel .panel-content > div {
+            margin-right: 20px;
+            margin-bottom: 10px;
+        }
+
+        /* 水平面板標題按鈕樣式 */
+        .toggle-btn {
+            transition: transform 0.3s ease-out;
+        }
+
+        /* 水平面板標題按鈕縮小樣式 */
+        .toggle-btn.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        /* 年月日設置面板內容縮小樣式 */
+        #date-settings-panel .panel-content.collapsed {
+            padding: 0 10px;
+            opacity: 0;
+            visibility: hidden;
+            height: 0;
+            overflow: hidden;
+        }
+
+        /* 編輯模式樣式 */
+        .edit-mode img {
+            outline: none;
+        }
+
+        /* 調整器樣式 */
+        #resizer {
+            width: 5px;
+            background: #ccc;
+            cursor: col-resize;
+        }
+
+        /* 重置網格佈局 */
+        .settings-content {
+            display: grid;
+            gap: 10px;
+            width: 100%;
+        }
+
+        /* 設置內容樣式 */
+        .settings-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 10px;
+        }
+
+        /* 設置群組樣式 */
+        .setting-group {
+            width: 100%;
+    box-sizing: border-box;
+}
+    </style>
+</head>
+<body>
+    <div id="settings">
+        <h2 class="settings-title">時鐘設置</h2>
+        <div class="settings-content">
+            <div class="setting-group">
+                <h3>基本設置</h3>
+                <div class="setting-item">
+                    <label for="timeFormat">時間格式：</label>
+                    <select id="timeFormat" class="wide-select">
+                        <option value="HH:mm:ss">24小時制 (HH:mm:ss)</option>
+                        <option value="HH:mm">24小時制 (HH:mm)</option>
+                        <option value="hh:mm:ss a">12小時制 (hh:mm:ss AM/PM)</option>
+                        <option value="hh:mm a">12小時制 (hh:mm AM/PM)</option>
+                        <option value="a hh:mm:ss">12小時制 (AM/PM hh:mm:ss)</option>
+                        <option value="a hh:mm">12小時制 (AM/PM hh:mm)</option>
+                        <option value="hh:mm:ss 上下午">12小時制 (hh:mm:ss 上下午)</option>
+                        <option value="上下午 hh:mm:ss">12小時制 (上下午 hh:mm:ss)</option>
+                        <option value="hh:mm 上下午">12小時制 (hh:mm 上下午)</option>
+                        <option value="上下午 hh:mm">12小時制 (上下午 hh:mm)</option>
+                    </select>
+                </div>
+                <div class="font-setting-container">
+                    <div class="font-select-container">
+                        <label for="fontSelect">選擇字體：</label>
+                        <select id="fontSelect" class="wide-select"></select>
+                    </div>
+                </div>
+                <div class="font-input-container">
+                    <input type="text" id="customFontInput" placeholder="輸入自定義字體">
+                    <button id="addCustomFontBtn">加入</button>
+                </div>
+                <div class="spacer"></div>
+                <div class="setting-item-row">
+                    <div class="setting-item-col">
+                        <label for="fontSizeSelect">文字大小：</label>
+                        <select id="fontSizeSelect" class="wide-select">
+                            <option value="3rem">小</option>
+                            <option value="5rem" selected>中</option>
+                            <option value="7rem">大</option>
+                        </select>
+                    </div>
+                    <div class="setting-item-col">
+                        <label for="textColor">文字顏色：</label>
+                        <input type="color" id="textColor" value="#000000">
+                    </div>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <h3>分隔符設置</h3>
+                <div class="setting-item-row">
+                    <div class="setting-item-col">
+                        <label for="separatorInput">分隔符：</label>
+                        <input type="text" id="separatorInput" maxlength="1" value=":">
+                    </div>
+                    <div class="setting-item-col">
+                        <label for="separatorRotation">分隔符旋轉（度）：</label>
+                        <input type="number" id="separatorRotation" value="0" min="0" max="360">
+                    </div>
+                </div>
+                <div class="setting-item-row">
+                    <div class="setting-item-col">
+                        <label for="separatorLeftMargin">分隔符左邊距：</label>
+                        <input type="number" id="separatorLeftMargin" value="0.2" min="0" max="1" step="0.1">
+                    </div>
+                    <div class="setting-item-col">
+                        <label for="separatorRightMargin">分隔符右邊距：</label>
+                        <input type="number" id="separatorRightMargin" value="0.2" min="0" max="1" step="0.1">
+                    </div>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <h3>外觀設置</h3>
+                <div class="setting-item-row">
+                    <div class="setting-item-col">
+                        <label for="textStrokeColor">文字外框顏色：</label>
+                        <input type="color" id="textStrokeColor" value="#ffffff">
+                    </div>
+                    <div class="setting-item-col">
+                        <label for="textStrokeWidth">文字外框寬度：</label>
+                        <input type="number" id="textStrokeWidth" value="0" min="0" max="10" step="0.1">
+                    </div>
+                </div>
+                <div class="setting-item-row">
+                    <div class="setting-item-col">
+                        <label for="backgroundColor">背景顏色：</label>
+                        <input type="color" id="backgroundColor" value="#ffffff">
+                    </div>
+                    <div class="setting-item-col">
+                        <label for="transparentBg">透明背景：</label>
+                        <input type="checkbox" id="transparentBg">
+                    </div>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <h3>自定義 CSS</h3>
+                <div class="setting-item">
+                    <label for="cssEditor">自定義 CSS（針對 .clock 元素）：</label>
+                    <textarea id="cssEditor">
+/* 在這裡添加自定義 CSS */
+text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+border: 2px solid #000;
+padding: 10px;
+border-radius: 10px;
+                    </textarea>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <h3>動畫設置</h3>
+                <div class="setting-item">
+                    <label for="digitAnimationDuration">數字動畫持續時間（秒）：</label>
+                    <input type="number" id="digitAnimationDuration" value="0.5" min="0.1" max="0.9" step="0.1">
+                </div>
+                <div class="setting-item">
+                    <label for="digitExitAnimation">數字消失效果：</label>
+                    <textarea id="digitExitAnimation">
+/* 數字消失時的效果 */
+transform: translateY(-100%);
+                    </textarea>
+                </div>
+                <div class="setting-item">
+                    <label for="digitEnterAnimation">數字出現效果：</label>
+                    <textarea id="digitEnterAnimation">
+/* 數字出現時的效果 */
+transform: translateY(100%);
+                    </textarea>
+                </div>
+                <div class="setting-item">
+                    <label for="colonAnimationKeyframes">分隔符動畫關鍵幀：</label>
+                    <textarea id="colonAnimationKeyframes">
+/* 分隔符動畫關鍵幀 */
+from { transform: rotate(0deg); }
+to { transform: rotate(360deg); }
+                    </textarea>
+                </div>
+                <div class="setting-item">
+                    <label for="colonAnimationProperties">分隔符動畫屬性：</label>
+                    <textarea id="colonAnimationProperties">
+/* 分隔符動畫屬性 */
+animation: rotate 2s linear infinite;
+                    </textarea>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <h3>圖片設置</h3>
+                <div id="numberImages">
+                    <h4>數字圖片設置</h4>
+                    <!-- 這裡將動態添加數字圖片上傳選項 -->
+                </div>
+                <div class="image-upload-item">
+                    <label for="separatorImage">分隔符圖片：</label>
+                    <input type="file" id="separatorImage" accept="image/*">
+                    <img id="separatorImagePreview" class="separator-image" src="" alt="分隔符預覽" style="display:none;">
+                    <button id="cancelSeparatorImage">取消</button>
+                </div>
+                <div class="setting-item-row">
+                    <div class="setting-item-col">
+                        <label for="numberImageSize">數字圖片大小：</label>
+                        <input type="number" id="numberImageSize" value="50" min="10" max="200" step="1">
+                    </div>
+                    <div class="setting-item-col">
+                        <label for="separatorImageSize">分隔符圖片大小：</label>
+                        <input type="number" id="separatorImageSize" value="50" min="10" max="200" step="1">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="resizer"></div>
+
+    <div id="main-content">
+        <div id="preview-container">
+            <!-- 年月日設置面板 -->
+            <div id="date-settings-panel" class="horizontal-panel">
+                <div class="panel-header">
+                    年月日設置
+                    <span class="toggle-btn">▼</span>
+                </div>
+                <div class="panel-content collapsed">
+                    <div>
+                        <label>年份格式：</label>
+                        <select id="yearFormat">
+                            <option value="">--</option>
+                            <option value="YYYY">YYYY</option>
+                            <option value="YY">YY</option>
+                            <option value="ROC">民國年</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>月份格式：</label>
+                        <select id="monthFormat">
+                            <option value="">--</option>
+                            <option value="MM">MM</option>
+                            <option value="M">M</option>
+                            <option value="MMM">英文縮寫</option>
+                            <option value="MMMM">英文全稱</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>日期格式：</label>
+                        <select id="dayFormat">
+                            <option value="">--</option>
+                            <option value="DD">DD</option>
+                            <option value="D">D</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>星期格式：</label>
+                        <select id="weekdayFormat">
+                            <option value="">--</option>
+                            <option value="ddd">英文縮寫</option>
+                            <option value="dddd">英文全稱</option>
+                            <option value="星期">中文 (星期)</option>
+                            <option value="禮拜">中文 (禮拜)</option>
+                            <option value="週">中文 (週)</option>
+                            <option value="曜日">日文 (曜日)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>分隔符：</label>
+                        <select id="dateSeparator">
+                            <option value="-">-</option>
+                            <option value="/">／</option>
+                            <option value=".">.</option>
+                            <option value=" ">空格</option>
+                            <option value="custom">自定義圖片</option>
+                        </select>
+                        <input type="file" id="customDateSeparator" accept="image/*" style="display: none;">
+                    </div>
+                    <div>
+                        <label>文字大小：</label>
+                        <input type="number" id="dateFontSize" value="20" min="10" max="100">
+                    </div>
+                    <div>
+                        <button id="addDateObject">添加物件</button>
+                    </div>
+                </div>
+            </div>
+            <div id="preview">
+                <div id="background-layer"></div>
+                <div id="clock-layer">
+                    <div class="clock" id="clock">
+                        <div class="digit" data-unit="hours-tens"><span>0</span></div>
+                        <div class="digit" data-unit="hours-ones"><span>0</span></div>
+                        <div class="colon">:</div>
+                        <div class="digit" data-unit="minutes-tens"><span>0</span></div>
+                        <div class="digit" data-unit="minutes-ones"><span>0</span></div>
+                        <div class="colon">:</div>
+                        <div class="digit" data-unit="seconds-tens"><span>0</span></div>
+                        <div class="digit" data-unit="seconds-ones"><span>0</span></div>
+                        <div id="ampm-indicator" class="ampm"></div>
+                        <div id="ampm-space" class="space"></div>
+                    </div>
+                </div>
+                <div id="foreground-layer"></div>
+            </div>
+            <button id="exportHTML">匯出 HTML</button>
+        </div>
+        <div id="right-panel">
+            <div id="imageUpload">
+                <h2>添加圖片</h2>
+                <input type="file" id="uploadImage" accept="image/*" multiple>
+            </div>
+            <div id="imageList"></div>
+            <div id="objectList">
+                <div class="object-list-header">
+                    <h3>物件列表</h3>
+                    <div class="edit-mode-container">
+                        <label for="editMode">
+                            編輯模式
+                            <input type="checkbox" id="editMode">
+                        </label>
+                    </div>
+                </div>
+                <ul id="sortableList"></ul>
+            </div>
+        </div>
+    </div>
+    <script>
+    // JavaScript 代碼將在這裡
+        // 獲取所有需要的元素
+        const fontSelect = document.getElementById('fontSelect');
+        const fontSizeSelect = document.getElementById('fontSizeSelect');
+        const separatorInput = document.getElementById('separatorInput');
+        const separatorRotation = document.getElementById('separatorRotation');
+        const textColor = document.getElementById('textColor');
+        const textStrokeColor = document.getElementById('textStrokeColor');
+        const textStrokeWidth = document.getElementById('textStrokeWidth');
+        const backgroundColor = document.getElementById('backgroundColor');
+        const transparentBg = document.getElementById('transparentBg');
+        const cssEditor = document.getElementById('cssEditor');
+        const digitAnimation = document.getElementById('digitAnimation');
+        const colonAnimation = document.getElementById('colonAnimation');
+        const applyChanges = document.getElementById('applyChanges');
+        const exportHTML = document.getElementById('exportHTML');
+        const preview = document.getElementById('preview');
+        const clock = document.getElementById('clock');
+        const imageList = document.getElementById('imageList');
+        const separatorLeftMargin = document.getElementById('separatorLeftMargin');
+        const separatorRightMargin = document.getElementById('separatorRightMargin');
+        const editMode = document.getElementById('editMode');
+        const numberImages = document.getElementById('numberImages');
+        const separatorImage = document.getElementById('separatorImage');
+        const separatorImagePreview = document.getElementById('separatorImagePreview');
+        const numberImageSize = document.getElementById('numberImageSize');
+        const separatorImageSize = document.getElementById('separatorImageSize');
+        const cancelSeparatorImage = document.getElementById('cancelSeparatorImage');
+        const sortableList = document.getElementById('sortableList');
+
+        let numberImageUrls = {};
+        let separatorImageUrl = '';
+        let objects = [];
+        let clockDragged = false;
+
+
+        //測試片段
+        //測試片段到此
+
+        function updateAnimationDuration() {
+            const duration = document.getElementById('digitAnimationDuration').value;
+            document.documentElement.style.setProperty('--digit-animation-duration', duration + 's');
+        }
+
+        // 在頁面加載時調用一次，以設置初始值
+        updateAnimationDuration();
+
+        // 為輸入框添加事件監聽器
+        document.getElementById('digitAnimationDuration').addEventListener('change', updateAnimationDuration);
+
+        //動畫CSS生成
+        function composeDigitAnimation() {
+            const duration = document.getElementById('digitAnimationDuration').value;
+            const exitAnimation = document.getElementById('digitExitAnimation').value;
+            const enterAnimation = document.getElementById('digitEnterAnimation').value;
+
+            return `
+        /* 數字動畫 CSS */
+        .digit {
+            display: inline-block;
+            position: relative;
+            overflow: hidden;
+            width: 1ch;
+            height: 1.2em;
+            line-height: 1.2em;
+        }
+        .digit > * {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            transition: transform ${duration}s;
+        }
+
+        .digit span:not(.new):not(.old) {
+            transform: translateY(0);
+        }
+        .digit span.new {
+            ${enterAnimation}
+        }
+        .digit.changing span.old {
+            ${exitAnimation}
+        }
+        .digit.changing span.new {
+            transform: translateY(0);
+        }
+            `;
+        }
+
+        function composeColonAnimation() {
+            const keyframes = document.getElementById('colonAnimationKeyframes').value;
+            const properties = document.getElementById('colonAnimationProperties').value;
+
+            return `
+        /* 分隔符動畫 CSS */
+        @keyframes rotate {
+            ${keyframes}
+        }
+        .colon {
+            ${properties}
+        }
+            `;
+        }
+        //更新預覽
+        function updatePreview() {
+            const digitAnimationCSS = composeDigitAnimation();
+            const colonAnimationCSS = composeColonAnimation();
+            clock.style.fontFamily = fontSelect.value;
+            clock.style.fontSize = fontSizeSelect.value;
+            clock.style.color = textColor.value;
+            clock.style.webkitTextStroke = `${textStrokeWidth.value}px ${textStrokeColor.value}`;
+            preview.style.backgroundColor = transparentBg.checked ? 'transparent' : backgroundColor.value;
+            const selectedFont = fontSelect.value;
+            clock.style.fontFamily = `'${selectedFont}', sans-serif`;
+            const colons = document.querySelectorAll('.colon');
+            colons.forEach(colon => {
+                if (separatorImageUrl) {
+                    colon.innerHTML = `<img src="${separatorImageUrl}" alt=":" class="clock-separator" style="width: ${separatorImageSize.value}px; height: ${separatorImageSize.value}px;">`;
+                } else {
+                    colon.textContent = separatorInput.value;
+                }
+                colon.style.transform = `rotate(${separatorRotation.value}deg)`;
+                colon.style.marginLeft = `${separatorLeftMargin.value}em`;
+                colon.style.marginRight = `${separatorRightMargin.value}em`;
+            });
+
+
+            document.querySelectorAll('.digit img').forEach(img => {
+                img.style.width = `${numberImageSize.value}px`;
+                img.style.height = `${numberImageSize.value}px`;
+            });
+
+            // 應用自定義 CSS
+            let customStyle = document.getElementById('customStyle');
+            if (!customStyle) {
+                customStyle = document.createElement('style');
+                customStyle.id = 'customStyle';
+                document.head.appendChild(customStyle);
+            }
+            customStyle.textContent = `
+                .clock {
+                    ${cssEditor.value}
+                }
+                ${digitAnimationCSS}
+                ${colonAnimationCSS}
+            `;
+
+            // 更新時鐘層的 z-index
+            document.getElementById('clock-layer').style.zIndex = '2';
+
+            // 更新所有圖片的層級
+            document.querySelectorAll('#background-layer > div, #foreground-layer > div').forEach(updateImageLayer);
+            
+            // 更新圖片的交互性
+            updateImageInteractivity();
+
+            // 更新所有物件的 z-index
+            updateObjectsZIndex();
+            
+            // 更新物件列表
+            updateObjectList();
+            updateAllDateObjects();
+            if (editMode.checked) {
+                adjustPreviewSize();
+                centerClock();  // 只在編輯模式下居中時鐘
+            }
+        }
+
+        // 設置面板的收縮/展開功能
+        function setupSettingsPanel(panelId) {
+            const panel = document.getElementById(panelId);
+            const header = panel.querySelector('.panel-header');
+            const content = panel.querySelector('.panel-content');
+            const toggleBtn = header.querySelector('.toggle-btn');
+
+
+            header.addEventListener('click', () => {
+                content.classList.toggle('collapsed');
+                toggleBtn.textContent = content.classList.contains('collapsed') ? '▼' : '▲';
+                
+                // 如果展開了，可能需要調整預覽大小
+                if (!content.classList.contains('collapsed')) {
+                    adjustPreviewSize();
+                }
+            });
+        }
+
+// 創建年月日物件
+        function createDateObject() {
+            const dateContainer = document.createElement('div');
+            dateContainer.className = 'date-object';
+            dateContainer.style.position = 'absolute';
+            dateContainer.style.left = '10px';
+            dateContainer.style.top = '10px';
+            dateContainer.style.color = textColor.value;
+            dateContainer.style.fontSize = `${fontSizeSelect.value}px`; //取用時間的文字大小
+            dateContainer.style.fontFamily = fontSelect.value; //取用時間的字體
+
+            const formats = {
+                year: document.getElementById('yearFormat').value,
+                month: document.getElementById('monthFormat').value,
+                day: document.getElementById('dayFormat').value,
+                weekday: document.getElementById('weekdayFormat').value,
+                separator: document.getElementById('dateSeparator').value === 'custom' ? 'custom' : document.getElementById('dateSeparator').value
+            };
+            dateContainer.addEventListener('click', function() {
+                if (editMode.checked) {
+                    selectDateObject(this);
+                }
+            });
+            dateContainer.dataset.formats = JSON.stringify(formats);
+
+            preview.appendChild(dateContainer);
+            makeElementDraggable(dateContainer);
+            addObjectToList(dateContainer, 'date');
+            updateDateObject(dateContainer);
+            adjustPreviewSize();
+        }
+        function selectDateObject(dateObj) {
+            // 移除其他物件的選中狀態
+            document.querySelectorAll('.date-object').forEach(obj => obj.classList.remove('selected'));
+            
+            // 添加選中狀態
+            dateObj.classList.add('selected');
+            
+            // 獲取該物件的格式設置
+            const formats = JSON.parse(dateObj.dataset.formats);
+            
+            // 更新面板上的設置
+            document.getElementById('yearFormat').value = formats.year;
+            document.getElementById('monthFormat').value = formats.month;
+            document.getElementById('dayFormat').value = formats.day;
+            document.getElementById('weekdayFormat').value = formats.weekday;
+            document.getElementById('dateSeparator').value = formats.separator;
+            document.getElementById('dateFontSize').value = parseInt(dateObj.style.fontSize);
+            
+            // 更新年月日設置面板的事件監聽器
+            updateDateSettingsListeners(dateObj);
+        }
+        function updateDateSettingsListeners(selectedDateObj) {
+            ['yearFormat', 'monthFormat', 'dayFormat', 'weekdayFormat', 'dateSeparator', 'dateFontSize'].forEach(id => {
+                const element = document.getElementById(id);
+                element.onchange = function() {
+                    const formats = JSON.parse(selectedDateObj.dataset.formats);
+                    formats[this.id] = this.value;
+                    selectedDateObj.dataset.formats = JSON.stringify(formats);
+                    if (this.id === 'dateFontSize') {
+                        selectedDateObj.style.fontSize = `${this.value}px`;
+                    }
+                    updateDateObject(selectedDateObj);
+                };
+            });
+        }
+        function resetDateSettingsListeners() {
+            ['yearFormat', 'monthFormat', 'dayFormat', 'weekdayFormat', 'dateSeparator', 'dateFontSize'].forEach(id => {
+                const element = document.getElementById(id);
+                element.onchange = updateAllDateObjects;
+            });
+        }
+        // 更新年月日物件
+        function updateDateObject(dateContainer) {
+            const formats = JSON.parse(dateContainer.dataset.formats);
+            const now = new Date();
+            const parts = [];
+
+            if (formats.year) {
+                let year = now.getFullYear();
+                if (formats.year === 'YY') year = year.toString().slice(-2);
+                if (formats.year === 'ROC') year = year - 1911;
+                parts.push(year);
+            }
+
+            if (formats.month) {
+                let month = now.getMonth() + 1;
+                if (formats.month === 'MM') month = month.toString().padStart(2, '0');
+                if (formats.month === 'MMM') month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][now.getMonth()];
+                if (formats.month === 'MMMM') month = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][now.getMonth()];
+                parts.push(month);
+            }
+
+            if (formats.day) {
+                let day = now.getDate();
+                if (formats.day === 'DD') day = day.toString().padStart(2, '0');
+                parts.push(day);
+            }
+
+            if (formats.weekday) {
+                const weekdays = {
+                    'ddd': ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                    'dddd': ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+                    '星期': ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'],
+                    '禮拜': ['禮拜日', '禮拜一', '禮拜二', '禮拜三', '禮拜四', '禮拜五', '禮拜六'],
+                    '週': ['週日', '週一', '週二', '週三', '週四', '週五', '週六'],
+                    '曜日': ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日']
+                };
+                parts.push(weekdays[formats.weekday][now.getDay()]);
+            }
+            if (formats.separator === 'custom' && customDateSeparatorUrl) {
+                const separator = `<img src="${customDateSeparatorUrl}" alt="分隔符" class="date-separator" style="width: 20px; height: 20px; vertical-align: middle;">`;
+                dateContainer.innerHTML = parts.join(separator);
+            } else {
+                dateContainer.textContent = parts.join(formats.separator);
+            }
+        }
+        let customDateSeparatorUrl = '';
+        document.getElementById('customDateSeparator').addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    customDateSeparatorUrl = e.target.result;
+                    updateAllDateObjects();
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+
+        // 更新所有年月日物件
+        function updateAllDateObjects() {
+            document.querySelectorAll('.date-object').forEach(dateContainer => {
+                dateContainer.style.fontSize = `${fontSizeSelect.value}px`;
+                dateContainer.style.fontFamily = fontSelect.value;
+                dateContainer.style.color = textColor.value;
+                updateDateObject(dateContainer);
+            });
+        }
+
+        function updateObjectsZIndex() {
+            objects.forEach((obj, index) => {
+                obj.element.style.zIndex = objects.length - index;
+            });
+        }
+
+        function updateObjectList() {
+            sortableList.innerHTML = '';
+            objects.forEach((obj, index) => {
+                const li = document.createElement('li');
+                li.className = 'object-item';
+                li.dataset.id = obj.id;
+
+                if (obj.type === 'image') {
+                    const img = document.createElement('img');
+                    img.src = obj.element.querySelector('img').src;
+                    li.appendChild(img);
+                } else {
+                    const clockIcon = document.createElement('span');
+                    clockIcon.textContent = '⏰';
+                    clockIcon.style.fontSize = '30px';
+                    clockIcon.style.marginRight = '10px';
+                    li.appendChild(clockIcon);
+                }
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = obj.name || `${obj.type} ${index + 1}`;
+                input.addEventListener('change', (e) => {
+                    obj.name = e.target.value;
+                });
+                li.appendChild(input);
+
+                // 添加刪除按鈕
+                if(obj.type !== 'clock'){
+                    const deleteBtn = document.createElement('span');
+                    deleteBtn.textContent = 'X';
+                    deleteBtn.className = 'list-delete-btn';
+                    deleteBtn.addEventListener('click', () => {
+                        // 從預覽中刪除圖片
+                        if (obj.element) {
+                            obj.element.remove();
+                        }
+                        // 從物件列表中刪除
+                        removeObjectFromList(obj.id);
+                        // 更新預覽大小
+                        adjustPreviewSize();
+                        });
+                        li.appendChild(deleteBtn);
+                }
+
+                sortableList.appendChild(li);
+            });
+        }
+
+        function addObjectToList(element, type) {
+            const id = Date.now().toString();
+            element.dataset.id = id;
+            objects.push({ element, type, id });
+            updateObjectList();
+        }
+
+        function removeObjectFromList(id) {
+            objects = objects.filter(obj => obj.id !== id);
+            updateObjectList();
+            adjustPreviewSize();
+        }
+
+        function makeElementDraggable(element) {
+            let isDragging = false;
+            let startX, startY;
+
+            element.addEventListener('mousedown', function(e) {
+                if (!editMode.checked) return;
+                isDragging = true;
+                startX = e.clientX - element.offsetLeft;
+                startY = e.clientY - element.offsetTop;
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging) return;
+                
+                let newX = e.clientX - startX;
+                let newY = e.clientY - startY;
+                
+                element.style.left = `${newX}px`;
+                element.style.top = `${newY}px`;
+            });
+
+            document.addEventListener('mouseup', function() {
+                if (isDragging) {
+                    isDragging = false;
+                    if (element === clock) {
+                        clockDragged = true;
+                    }
+                    adjustPreviewSize();
+                }
+            });
+
+            // 添加滾輪縮放功能
+            let wheelTimeout;
+            element.addEventListener('wheel', function(e) {
+                if (!editMode.checked) return;
+                e.preventDefault();
+                const img = element.querySelector('img:not(.clock-number):not(.clock-separator):not(.date-separator)');
+                if (!img) return;
+
+                const scale = e.deltaY < 0 ? 1.1 : 0.9;
+                const currentWidth = element.offsetWidth;
+                const currentHeight = element.offsetHeight;
+                const newWidth = currentWidth * scale;
+                const newHeight = currentHeight * scale;
+
+                // 確保縮放後的元素不會小於最小尺寸
+                if (newWidth >= 20 && newHeight >= 20) {
+                    element.style.width = `${newWidth}px`;
+                    element.style.height = `${newHeight}px`;
+
+                    clearTimeout(wheelTimeout);
+                    wheelTimeout = setTimeout(() => {
+                        adjustPreviewSize();
+                    }, 200);
+                }
+            });
+        }
+
+        // 使時鐘可拖動
+        makeElementDraggable(clock);
+        addObjectToList(clock, 'clock');
+
+        // 初始化 Sortable
+        new Sortable(sortableList, {
+            animation: 150,
+            onEnd: function() {
+                const newOrder = Array.from(sortableList.children).map(li => li.dataset.id);
+                objects = newOrder.map(id => objects.find(obj => obj.id === id));
+                updateObjectsZIndex();
+            }
+        });
+        function centerClock() {
+            const previewRect = preview.getBoundingClientRect();
+            const clockRect = clock.getBoundingClientRect();
+            const newLeft = (previewRect.width - clockRect.width) / 2;
+            const newTop = (previewRect.height - clockRect.height) / 2;
+            
+            // 只有當位置發生顯著變化時才移動時鐘
+            if (!clockDragged || Math.abs(newLeft - parseFloat(clock.style.left)) > 1 || 
+                Math.abs(newTop - parseFloat(clock.style.top)) > 1) {
+                clock.style.left = `${newLeft}px`;
+                clock.style.top = `${newTop}px`;
+            }
+        }
+
+        function adjustPreviewSize() {
+            if (!editMode.checked) {
+                fitElementsInPreview();
+                return;
+            }
+
+            const previewRect = preview.getBoundingClientRect();
+            const elements = [...preview.querySelectorAll('#background-layer > div, #foreground-layer > div')];
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+            elements.forEach(el => {
+                if (el !== clock) {
+                    const rect = el.getBoundingClientRect();
+                    minX = Math.min(minX, rect.left - previewRect.left);
+                    minY = Math.min(minY, rect.top - previewRect.top);
+                    maxX = Math.max(maxX, rect.right - previewRect.left);
+                    maxY = Math.max(maxY, rect.bottom - previewRect.top);
+                }
+            });
+
+            // 如果沒有元素或所有元素都在預覽框內，保持當前大小
+            if (minX === Infinity || (minX >= 0 && minY >= 0 && maxX <= previewRect.width && maxY <= previewRect.height)) {
+                return;
+            }
+
+            const padding = 20;
+            const minWidth = 800;
+            const minHeight = 450;
+
+            let newWidth = Math.max(maxX + padding, minWidth);
+            let newHeight = Math.max(maxY + padding, minHeight);
+
+            // 調整尺寸以保持 16:9 的比例
+            const aspectRatio = 16 / 9;
+            if (newWidth / newHeight > aspectRatio) {
+                newHeight = newWidth / aspectRatio;
+            } else {
+                newWidth = newHeight * aspectRatio;
+            }
+
+            // 只有當新尺寸大於當前尺寸時才調整
+            if (newWidth > previewRect.width || newHeight > previewRect.height) {
+                preview.style.width = `${newWidth}px`;
+                preview.style.height = `${newHeight}px`;
+
+                console.log(`Preview size adjusted to ${newWidth}x${newHeight}`);
+
+                // 調整元素位置，確保它們不會超出邊界
+                elements.forEach(el => {
+                    if (el !== clock) {
+                        const rect = el.getBoundingClientRect();
+                        const left = Math.max(0, rect.left - previewRect.left);
+                        const top = Math.max(0, rect.top - previewRect.top);
+                        el.style.left = `${left}px`;
+                        el.style.top = `${top}px`;
+                    }
+                });
+            }
+        }
+
+        function fitElementsInPreview() {
+            const previewRect = preview.getBoundingClientRect();
+            const elements = [...preview.querySelectorAll('#background-layer > div, #foreground-layer > div')];
+
+            elements.forEach(el => {
+                if (el !== clock) {
+                    const rect = el.getBoundingClientRect();
+                    const left = Math.max(0, Math.min(rect.left - previewRect.left, previewRect.width - rect.width));
+                    const top = Math.max(0, Math.min(rect.top - previewRect.top, previewRect.height - rect.height));
+                    el.style.left = `${left}px`;
+                    el.style.top = `${top}px`;
+                }
+            });
+        }
+
+        function populateFontSelect() {
+            const fontSelect = document.getElementById('fontSelect');
+            const customFontInput = document.getElementById('customFontInput');
+            const fonts = [
+                'Arial', 'Helvetica', 'Times New Roman', 'Courier New', 'Verdana', 
+                'Georgia', 'Palatino', 'Garamond', 'Bookman', 'Comic Sans MS', 
+                'Trebuchet MS', 'Arial Black', 'Impact', 'Stencil',
+                // 添加支援中文的字體
+                '新細明體', '細明體', '標楷體', '微軟正黑體', 
+                // 添加 Google Fonts
+                'Noto Sans TC', 'Roboto'
+            ];
+            fonts.forEach(font => {
+                const option = document.createElement('option');
+                option.value = font;
+                option.textContent = font;
+                option.style.fontFamily = font;
+                fontSelect.appendChild(option);
+            });
+            // 添加事件監聽器，當選擇變更時更新預覽
+            fontSelect.addEventListener('change', updatePreview);
+
+            // 添加自定義字體按鈕的事件監聽器
+            addCustomFontBtn.addEventListener('click', function() {
+                const customFont = customFontInput.value.trim();
+                if (customFont) {
+                    // 檢查字體是否已存在於選擇列表中
+                    if (!Array.from(fontSelect.options).some(option => option.value === customFont)) {
+                        const option = document.createElement('option');
+                        option.value = customFont;
+                        option.textContent = customFont + ' (自定義)';
+                        option.style.fontFamily = customFont;
+                        fontSelect.appendChild(option);
+                    }
+                    fontSelect.value = customFont;
+                    updatePreview();
+                    customFontInput.value = ''; // 清空輸入框
+                }
+            });
+        }
+
+        function updateClockImages() {
+            const digits = clock.querySelectorAll('.digit');
+            const colonElements = clock.querySelectorAll('.colon');
+            const numberImageSize = document.getElementById('numberImageSize').value;
+            const separatorImageSize = document.getElementById('separatorImageSize').value;
+
+            digits.forEach(digit => {
+                const span = digit.querySelector('span');
+                const number = span.textContent;
+                if (numberImageUrls[number]) {
+                    digit.innerHTML = `<img src="${numberImageUrls[number]}" alt="${number}" class="clock-number" style="width:${numberImageSize}px;height:${numberImageSize}px;">`;
+                } else {
+                    digit.innerHTML = `<span class="clock-number">${number}</span>`;
+                }
+            });
+
+            colonElements.forEach(colon => {
+                if (separatorImageUrl) {
+                    colon.innerHTML = `<img src="${separatorImageUrl}" alt=":" class="clock-separator" style="width:${separatorImageSize}px;height:${separatorImageSize}px;">`;
+                } else {
+                    colon.innerHTML = `<span class="clock-separator">${colon.textContent}</span>`;
+                }
+            });
+        }
+        function setupNumberImageUpload() {
+            const numberImagesContainer = document.getElementById('numberImages');
+            for (let i = 0; i <= 9; i++) {
+                const div = document.createElement('div');
+                div.className = 'image-upload-item';
+                div.innerHTML = `
+                    <label for="numberImage${i}" title="數字 ${i} 圖片">數字 ${i} 圖片：</label>
+                    <input type="file" id="numberImage${i}" accept="image/*">
+                    <img class="number-image" id="numberImagePreview${i}" src="" alt="數字 ${i} 預覽" style="display:none;">
+                    <button id="cancelNumberImage${i}">取消</button>
+                `;
+                numberImagesContainer.appendChild(div);
+
+                document.getElementById(`numberImage${i}`).addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            numberImageUrls[i] = e.target.result;
+                            const preview = document.getElementById(`numberImagePreview${i}`);
+                            preview.src = e.target.result;
+                            preview.style.display = 'inline-block';
+                            // 確保更新時鐘顯示
+                            updateClockImages();
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+
+                document.getElementById(`cancelNumberImage${i}`).addEventListener('click', function() {
+                    delete numberImageUrls[i];
+                    const preview = document.getElementById(`numberImagePreview${i}`);
+                    preview.src = '';
+                    preview.style.display = 'none';
+                    document.getElementById(`numberImage${i}`).value = '';
+                    // 確保更新時鐘顯示
+                    updateClockImages();
+                });
+            }
+        }
+
+        separatorImage.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    separatorImageUrl = e.target.result;
+                    separatorImagePreview.src = e.target.result;
+                    separatorImagePreview.style.display = 'inline-block';
+                    updatePreview();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        cancelSeparatorImage.addEventListener('click', function() {
+            separatorImageUrl = '';
+            separatorImagePreview.src = '';
+            separatorImagePreview.style.display = 'none';
+            separatorImage.value = '';
+            updatePreview();
+        });
+
+        document.getElementById('uploadImage').addEventListener('change', function(e) {
+            for (let file of e.target.files) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'image-item';
+                    
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    
+                    const removeBtn = document.createElement('span');
+                    removeBtn.className = 'remove';
+                    removeBtn.textContent = 'X';
+                    removeBtn.onclick = function() {
+                        imageList.removeChild(imgContainer);
+                    };
+                    
+                    imgContainer.appendChild(img);
+                    imgContainer.appendChild(removeBtn);
+                    imageList.appendChild(imgContainer);
+
+                    img.onclick = function() {
+                        addImageToPreview(e.target.result);
+                    };
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function addImageToPreview(src) {
+            const imgContainer = document.createElement('div');
+            imgContainer.style.position = 'absolute';
+            imgContainer.style.left = '0';
+            imgContainer.style.top = '0';
+            imgContainer.style.overflow = 'hidden'; // 防止內容溢出
+
+            const img = document.createElement('img');
+            img.src = src;
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'contain'; // 保持圖片比例
+
+            const deleteBtn = document.createElement('span');
+            deleteBtn.textContent = 'X';
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.style.position = 'absolute';
+            deleteBtn.style.top = '0';
+            deleteBtn.style.right = '0';
+            deleteBtn.style.backgroundColor = 'red';
+            deleteBtn.style.color = 'white';
+            deleteBtn.style.borderRadius = '50%';
+            deleteBtn.style.width = '20px';
+            deleteBtn.style.height = '20px';
+            deleteBtn.style.textAlign = 'center';
+            deleteBtn.style.lineHeight = '20px';
+            deleteBtn.style.cursor = 'pointer';
+            deleteBtn.style.display = editMode.checked ? 'block' : 'none';
+
+            imgContainer.appendChild(img);
+            imgContainer.appendChild(deleteBtn);
+            preview.appendChild(imgContainer);
+
+            // 設置初始大小
+            imgContainer.style.width = '100px';
+            imgContainer.style.height = '100px';
+
+            makeElementDraggable(imgContainer);
+
+            deleteBtn.onclick = function(e) {
+                e.stopPropagation();
+                preview.removeChild(imgContainer);
+                removeObjectFromList(imgContainer.dataset.id);
+            };
+
+            addObjectToList(imgContainer, 'image');
+            adjustPreviewSize();
+        }
+
+        editMode.addEventListener('change', function() {
+            preview.classList.toggle('edit-mode', this.checked);
+            document.querySelectorAll('#preview > div').forEach(container => {
+                const deleteBtn = container.querySelector('span.delete-btn');
+                if (deleteBtn) {
+                    deleteBtn.style.display = this.checked ? 'block' : 'none';
+                }
+            });
+            updateImageInteractivity();
+            if (this.checked) {
+                // 只有在真正需要時才調整預覽框大小
+                const previewRect = preview.getBoundingClientRect();
+                const elements = [...preview.querySelectorAll('#background-layer > div, #foreground-layer > div')];
+                const needsAdjustment = elements.some(el => {
+                    const rect = el.getBoundingClientRect();
+                    return rect.right > previewRect.right || rect.bottom > previewRect.bottom;
+                });
+                if (needsAdjustment) {
+                    adjustPreviewSize();
+                }
+            } else {
+                fitElementsInPreview();
+            }
+            updatePreview();
+        });
+
+        function updateImageLayer(imgContainer) {
+            const backgroundLayer = document.getElementById('background-layer');
+            const foregroundLayer = document.getElementById('foreground-layer');
+            const clockLayer = document.getElementById('clock-layer');
+            
+            if (imgContainer.dataset.layer === 'background') {
+                backgroundLayer.appendChild(imgContainer);
+                imgContainer.style.zIndex = '1';
+            } else {
+                foregroundLayer.appendChild(imgContainer);
+                imgContainer.style.zIndex = '3';
+            }
+            
+            clockLayer.style.zIndex = '2';
+        }
+
+        function updateImageInteractivity() {
+            const allLayers = ['background-layer', 'foreground-layer'];
+            allLayers.forEach(layerId => {
+                const layer = document.getElementById(layerId);
+                layer.querySelectorAll('div').forEach(container => {
+                    const img = container.querySelector('img:not(.clock-number):not(.clock-separator)');
+                    if (img) {
+                        if (editMode.checked) {
+                            img.style.pointerEvents = 'auto';
+                            container.style.pointerEvents = 'auto';
+                            container.style.zIndex = '1000';
+                        } else {
+                            img.style.pointerEvents = 'none';
+                            container.style.pointerEvents = 'none';
+                            container.style.zIndex = container.parentElement.id === 'background-layer' ? '1' : '3';
+                        }
+                    }
+                });
+            });
+            clock.style.pointerEvents = editMode.checked ? 'auto' : 'none';
+        }
+
+        preview.addEventListener('mousedown', function(e) {
+            if (!editMode.checked) return;
+            if (e.target.tagName === 'IMG' || (e.target.tagName === 'DIV' && e.target.parentElement === preview)) {
+                document.querySelectorAll('#preview > div').forEach(container => {
+                    container.style.outline = 'none';
+                });
+                let targetContainer = e.target.tagName === 'IMG' ? e.target.parentElement : e.target;
+                targetContainer.style.outline = '2px solid blue';
+            } else if (e.target === preview) {
+                document.querySelectorAll('#preview > div').forEach(container => {
+                    container.style.outline = 'none';
+                });
+            }
+        });
+        let lastUpdateTime = 0;
+
+        function updateClock() {
+            const now = new Date();
+            const currentTime = now.getTime();
+
+            if (currentTime - lastUpdateTime < 1000) {
+                requestAnimationFrame(updateClock);
+                return;
+            }
+
+            lastUpdateTime = currentTime;
+
+            const format = timeFormat.value;
+            const hours24 = String(now.getHours()).padStart(2, '0');
+            const hours12 = String(now.getHours() % 12 || 12).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
+            const ampmChinese = now.getHours() >= 12 ? '下午' : '上午';
+
+            const clockElement = document.getElementById('clock');
+            const timeParts = {};
+            let showAmPm = false;
+            let ampmText = '';
+
+            switch (format) {
+                case 'HH:mm:ss':
+                case 'HH:mm':
+                    timeParts['hours-tens'] = hours24[0];
+                    timeParts['hours-ones'] = hours24[1];
+                    timeParts['minutes-tens'] = minutes[0];
+                    timeParts['minutes-ones'] = minutes[1];
+                    if (format.includes('ss')) {
+                        timeParts['seconds-tens'] = seconds[0];
+                        timeParts['seconds-ones'] = seconds[1];
+                    }
+                    break;
+                case 'hh:mm:ss a':
+                case 'a hh:mm:ss':
+                case 'hh:mm a':
+                case 'a hh:mm':
+                case 'hh:mm:ss 上下午':
+                case '上下午 hh:mm:ss':
+                case 'hh:mm 上下午':
+                case '上下午 hh:mm':
+                    timeParts['hours-tens'] = hours12[0];
+                    timeParts['hours-ones'] = hours12[1];
+                    timeParts['minutes-tens'] = minutes[0];
+                    timeParts['minutes-ones'] = minutes[1];
+                    if (format.includes('ss')) {
+                        timeParts['seconds-tens'] = seconds[0];
+                        timeParts['seconds-ones'] = seconds[1];
+                    }
+                    showAmPm = true;
+                    ampmText = format.includes('a') ? ampm : ampmChinese;
+                    break;
+            }
+
+            // 更新數字
+            for (const [unit, value] of Object.entries(timeParts)) {
+                updateDigit(unit, value);
+            }
+
+            // 更新分隔符和 AM/PM 指示器
+            const colonElements = clockElement.querySelectorAll('.colon');
+            const ampmElement = document.getElementById('ampm-indicator');
+            const ampmSpaceElement = document.getElementById('ampm-space');
+            
+            colonElements.forEach((colon, index) => {
+                colon.style.display = index === 0 || (index === 1 && format.includes('ss')) ? 'inline-block' : 'none';
+            });
+
+            if (ampmElement && ampmSpaceElement) {
+                if (showAmPm) {
+                    ampmElement.textContent = ampmText;
+                    ampmElement.style.display = 'inline-block';
+                    ampmSpaceElement.style.display = 'inline-block';
+                } else {
+                    ampmElement.style.display = 'none';
+                    ampmSpaceElement.style.display = 'none';
+                }
+
+                if (format.startsWith('a') || format.startsWith('上下午')) {
+                    clockElement.insertBefore(ampmSpaceElement, clockElement.firstChild);
+                    clockElement.insertBefore(ampmElement, ampmSpaceElement);
+                } else {
+                    clockElement.appendChild(ampmElement);
+                    clockElement.insertBefore(ampmSpaceElement, ampmElement);
+                }
+            }
+
+            // 隱藏不需要的元素
+            clockElement.querySelectorAll('.digit').forEach(digit => {
+                digit.style.display = timeParts.hasOwnProperty(digit.dataset.unit) ? 'inline-block' : 'none';
+            });
+
+            // 將時鐘置中
+            centerClock();
+            if (currentTime - lastUpdateTime < 1000) {
+                requestAnimationFrame(updateClock);
+                return;
+            }
+
+            lastUpdateTime = currentTime;
+
+            // 原有的時鐘更新邏輯
+            // ...
+
+            // 添加更新年月日物件的邏輯
+            updateAllDateObjects();
+            requestAnimationFrame(updateClock);
+        }
+
+        function updateDigit(unit, value) {
+            const digitElement = document.querySelector(`.digit[data-unit="${unit}"]`);
+            const currentElement = digitElement.firstElementChild;
+            const currentContent = currentElement ? (currentElement.textContent || currentElement.querySelector('img')?.alt) : null;
+            const durationMs = parseFloat(document.getElementById('digitAnimationDuration').value) * 1000;
+            console.log(`Updating ${unit}: current=${currentContent}, new=${value}`);
+
+            if (currentContent !== value) {
+                console.log(`${unit} is changing from ${currentContent} to ${value}`);
+
+                // 將所有現有元素標記為舊元素
+                digitElement.childNodes.forEach(node => {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        node.classList.add('old');
+                    }
+                });
+
+                // 創建新的 span 元素
+                const newSpan = document.createElement('span');
+                if (numberImageUrls[value]) {
+                    const img = document.createElement('img');
+                    img.src = numberImageUrls[value];
+                    img.alt = value;
+                    img.className = 'clock-number';
+                    img.style.width = `${numberImageSize.value}px`;
+                    img.style.height = `${numberImageSize.value}px`;
+                    img.style.objectFit = 'contain';
+                    newSpan.appendChild(img);
+                } else {
+                    newSpan.textContent = value;
+                }
+
+                newSpan.classList.add('new');
+                digitElement.appendChild(newSpan);
+
+                void digitElement.offsetWidth; // 觸發重排
+
+                digitElement.classList.add('changing');
+
+                setTimeout(() => {
+                    // 移除所有舊元素
+                    digitElement.querySelectorAll('.old').forEach(el => el.remove());
+                    newSpan.classList.remove('new');
+                    digitElement.classList.remove('changing');
+                }, durationMs); // 使用動畫時間
+            } else {
+                console.log(`${unit} remains unchanged`);
+            }
+        }
+
+        exportHTML.addEventListener('click', function() {
+            const clockRect = clock.getBoundingClientRect();
+            const computedStyle = window.getComputedStyle(clock);
+            const paddingLeft = parseFloat(computedStyle.paddingLeft);
+            const paddingRight = parseFloat(computedStyle.paddingRight);
+            const paddingTop = parseFloat(computedStyle.paddingTop);
+            const paddingBottom = parseFloat(computedStyle.paddingBottom);
+            const borderLeft = parseFloat(computedStyle.borderLeftWidth);
+            const borderRight = parseFloat(computedStyle.borderRightWidth);
+            const borderTop = parseFloat(computedStyle.borderTopWidth);
+            const borderBottom = parseFloat(computedStyle.borderBottomWidth);
+            const durationMs = parseFloat(document.getElementById('digitAnimationDuration').value) * 1000;
+            const clockWidth = Math.ceil(clockRect.width - paddingLeft - paddingRight - borderLeft - borderRight);
+            const clockHeight = Math.ceil(clockRect.height - paddingTop - paddingBottom - borderTop - borderBottom);
+            const digitAnimationCSS = composeDigitAnimation();
+            const colonAnimationCSS = composeColonAnimation();
+            const style = document.createElement('style');
+            style.textContent = `
+                body, html {
+                    margin: 0;
+                    padding: 0;
+                    height: 100%;
+                    overflow: hidden;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+                #container {
+                    width: ${preview.offsetWidth}px;
+                    height: ${preview.offsetHeight}px;
+                    position: relative;
+                    overflow: hidden;
+                }
+                .clock {
+                    position: absolute;
+                    font-family: ${fontSelect.value};
+                    font-size: ${fontSizeSelect.value};
+                    color: ${textColor.value};
+                    -webkit-text-stroke: ${textStrokeWidth.value}px ${textStrokeColor.value};
+                    ${cssEditor.value}
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: ${clockWidth}px;
+                    height: ${clockHeight}px;
+                    padding: ${paddingTop}px ${paddingRight}px ${paddingBottom}px ${paddingLeft}px;
+                    border-width: ${borderTop}px ${borderRight}px ${borderBottom}px ${borderLeft}px;
+                    border-style: solid;
+                    border-color: ${computedStyle.borderColor};
+                    overflow: hidden;
+                }
+                .colon {
+                    display: inline-block;
+                    align-items: center;
+                    justify-content: center;
+                    line-height: 1;
+                    height: 1.2em;
+                    margin: 0 ${separatorLeftMargin.value}em 0 ${separatorRightMargin.value}em;
+                }
+                .clock-number, .clock-separator {
+                    width: ${numberImageSize.value}px;
+                    height: ${numberImageSize.value}px;
+                    object-fit: contain;
+                }
+                .ampm {
+                    display: inline-block;
+                    font-size: 0.5em;
+                    vertical-align: super;
+                    /*margin-left: 0.5em;*/
+                }
+                .space {
+                    display: inline-block;
+                    width: 0.5em;
+                }
+                ${digitAnimationCSS}
+                ${colonAnimationCSS}
+            `;
+
+            const previewRect = preview.getBoundingClientRect();
+
+            const sortedObjects = objects.sort((a, b) => parseInt(a.element.style.zIndex) - parseInt(b.element.style.zIndex));
+
+            const elementsHtml = sortedObjects.map(obj => {
+                const rect = obj.element.getBoundingClientRect();
+                const left = obj.element.offsetLeft;
+                const top = obj.element.offsetTop;
+                
+                if (obj.type === 'clock') {
+                    const clockStyle = `
+                        left: ${left}px;
+                        top: ${top}px;
+                        width: ${clockWidth}px;
+                        height: ${clockHeight}px;
+                        z-index: ${obj.element.style.zIndex};
+                    `;
+                    return `<div class="clock" style="${clockStyle}">
+                        <div id="ampm-indicator" class="ampm"></div>
+                        <div id="ampm-space" class="space"></div>
+                        <div class="digit" data-unit="hours-tens"><span>0</span></div>
+                        <div class="digit" data-unit="hours-ones"><span>0</span></div>
+                        <div class="colon">:</div>
+                        <div class="digit" data-unit="minutes-tens"><span>0</span></div>
+                        <div class="digit" data-unit="minutes-ones"><span>0</span></div>
+                        <div class="colon">:</div>
+                        <div class="digit" data-unit="seconds-tens"><span>0</span></div>
+                        <div class="digit" data-unit="seconds-ones"><span>0</span></div>
+                    </div>`;
+                } else if (obj.type === 'image') {
+                    const img = obj.element.querySelector('img');
+                    return `<img src="${img.src}" alt="${img.alt}" style="position: absolute; left: ${left}px; top: ${top}px; width: ${rect.width}px; height: ${rect.height}px; object-fit: contain; z-index: ${obj.element.style.zIndex};">`;
+                }
+            }).join('');
+
+            const htmlContent = `<!DOCTYPE html>
+            <html lang="zh-TW">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>數字時鐘</title>
+                <style>${style.textContent}</style>
+                <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC&family=Roboto&display=swap" rel="stylesheet">
+            </head>
+            <body>
+                <div id="container">
+                    ${elementsHtml}
+                </div>
+                <script>
+                    const timeFormat = '${timeFormat.value}';
+                    const numberImageUrls = ${JSON.stringify(numberImageUrls)};
+                    const separatorImageUrl = '${separatorImageUrl}';
+                    const numberImageSize = ${numberImageSize.value};
+                    const separatorImageSize = ${separatorImageSize.value};
+                    const separatorRotation = ${separatorRotation.value};
+                    const separatorLeftMargin = ${separatorLeftMargin.value};
+                    const separatorRightMargin = ${separatorRightMargin.value};
+                    const durationMs = ${durationMs};
+                    let lastUpdateTime = 0;
+
+                    function updateClock() {
+                        const now = new Date();
+                        const currentTime = now.getTime();
+
+                        if (currentTime - lastUpdateTime < 1000) {
+                            requestAnimationFrame(updateClock);
+                            return;
+                        }
+
+                        lastUpdateTime = currentTime;
+
+                        const hours24 = String(now.getHours()).padStart(2, '0');
+                        const hours12 = String(now.getHours() % 12 || 12).padStart(2, '0');
+                        const minutes = String(now.getMinutes()).padStart(2, '0');
+                        const seconds = String(now.getSeconds()).padStart(2, '0');
+                        const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
+                        const ampmChinese = now.getHours() >= 12 ? '下午' : '上午';
+
+                        const clockElement = document.querySelector('.clock');
+                        const timeParts = {};
+                        let showAmPm = false;
+                        let ampmText = '';
+
+                        switch (timeFormat) {
+                            case 'HH:mm:ss':
+                            case 'HH:mm':
+                                timeParts['hours-tens'] = hours24[0];
+                                timeParts['hours-ones'] = hours24[1];
+                                timeParts['minutes-tens'] = minutes[0];
+                                timeParts['minutes-ones'] = minutes[1];
+                                if (timeFormat.includes('ss')) {
+                                    timeParts['seconds-tens'] = seconds[0];
+                                    timeParts['seconds-ones'] = seconds[1];
+                                }
+                                break;
+                            case 'hh:mm:ss a':
+                            case 'a hh:mm:ss':
+                            case 'hh:mm a':
+                            case 'a hh:mm':
+                            case 'hh:mm:ss 上下午':
+                            case '上下午 hh:mm:ss':
+                            case 'hh:mm 上下午':
+                            case '上下午 hh:mm':
+                                timeParts['hours-tens'] = hours12[0];
+                                timeParts['hours-ones'] = hours12[1];
+                                timeParts['minutes-tens'] = minutes[0];
+                                timeParts['minutes-ones'] = minutes[1];
+                                if (timeFormat.includes('ss')) {
+                                    timeParts['seconds-tens'] = seconds[0];
+                                    timeParts['seconds-ones'] = seconds[1];
+                                }
+                                showAmPm = true;
+                                ampmText = timeFormat.includes('a') ? ampm : ampmChinese;
+                                break;
+                        }
+
+                        // 更新數字
+                        for (const [unit, value] of Object.entries(timeParts)) {
+                            updateDigit(unit, value);
+                        }
+
+                        // 更新分隔符和 AM/PM 指示器
+                        const colonElements = clockElement.querySelectorAll('.colon');
+                        const ampmElement = document.getElementById('ampm-indicator');
+                        const ampmSpaceElement = document.getElementById('ampm-space');
+                        
+                        colonElements.forEach((colon, index) => {
+                            colon.style.display = index === 0 || (index === 1 && timeFormat.includes('ss')) ? 'inline-block' : 'none';
+                        });
+
+                        if (ampmElement && ampmSpaceElement) {
+                            if (showAmPm) {
+                                ampmElement.textContent = ampmText;
+                                ampmElement.style.display = 'inline-block';
+                                ampmSpaceElement.style.display = 'inline-block';
+                            } else {
+                                ampmElement.style.display = 'none';
+                                ampmSpaceElement.style.display = 'none';
+                            }
+
+                            if (timeFormat.startsWith('a') || timeFormat.startsWith('上下午')) {
+                                clockElement.insertBefore(ampmSpaceElement, clockElement.firstChild);
+                                clockElement.insertBefore(ampmElement, ampmSpaceElement);
+                            } else {
+                                clockElement.appendChild(ampmElement);
+                                clockElement.insertBefore(ampmSpaceElement, ampmElement);
+                            }
+                        }
+
+                        // 隱藏不需要的元素
+                        clockElement.querySelectorAll('.digit').forEach(digit => {
+                            digit.style.display = timeParts.hasOwnProperty(digit.dataset.unit) ? 'inline-block' : 'none';
+                        });
+
+                        requestAnimationFrame(updateClock);
+                    }
+
+                    function updateDigit(unit, value) {
+                        const digitElement = document.querySelector(\`.digit[data-unit="\${unit}"]\`);
+                        if (!digitElement) return;
+
+                        const currentElement = digitElement.firstElementChild;
+                        const currentContent = currentElement ? (currentElement.textContent || currentElement.querySelector('img')?.alt) : null;
+
+                        console.log(\`Updating \${unit}: current=\${currentContent}, new=\${value}\`);
+
+                        if (currentContent !== value) {
+                            console.log(\`\${unit} is changing from \${currentContent} to \${value}\`);
+
+                            // 將所有現有元素標記為舊元素
+                            digitElement.childNodes.forEach(node => {
+                                if (node.nodeType === Node.ELEMENT_NODE) {
+                                    node.classList.add('old');
+                                }
+                            });
+
+                            // 創建新的 span 元素
+                            const newSpan = document.createElement('span');
+                            if (numberImageUrls[value]) {
+                                const img = document.createElement('img');
+                                img.src = numberImageUrls[value];
+                                img.alt = value;
+                                img.className = 'clock-number';
+                                img.style.width = \`\${numberImageSize}px\`;
+                                img.style.height = \`\${numberImageSize}px\`;
+                                img.style.objectFit = 'contain';
+                                newSpan.appendChild(img);
+                            } else {
+                                newSpan.textContent = value;
+                            }
+
+                            newSpan.classList.add('new');
+                            digitElement.appendChild(newSpan);
+
+                            void digitElement.offsetWidth; // 觸發重排
+
+                            digitElement.classList.add('changing');
+
+                            setTimeout(() => {
+                                // 移除所有舊元素
+                                digitElement.querySelectorAll('.old').forEach(el => el.remove());
+                                newSpan.classList.remove('new');
+                                digitElement.classList.remove('changing');
+                            }, durationMs); // 使用動畫時間
+                        } else {
+                            console.log(\`\${unit} remains unchanged\`);
+                        }
+                    }
+
+                    updateClock();
+                <\/script>
+            </body>
+            </html>`;
+
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'digital_clock.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        // 確保在調整大小前更新預覽
+        const resizer = document.getElementById('resizer');
+        const settings = document.getElementById('settings');
+
+        let isResizing = false;
+
+        resizer.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            document.addEventListener('mousemove', resize);
+            document.addEventListener('mouseup', stopResize);
+        });
+
+        function resize(e) {
+            if (isResizing) {
+                const newWidth = e.clientX;
+                if (newWidth > 200 && newWidth < window.innerWidth / 2) {
+                    settings.style.width = newWidth + 'px';
+                }
+            }
+        }
+
+        function stopResize() {
+            isResizing = false;
+            document.removeEventListener('mousemove', resize);
+            document.removeEventListener('mouseup', stopResize);
+        }
+
+        // 確保在調整大小後更新預覽
+        resizer.addEventListener('mouseup', updatePreview);
+        // 初始更新預覽
+        updatePreview();
+        // 初始化和事件監聽器
+        populateFontSelect();
+        setupNumberImageUpload();
+        updateClock();
+        // 為所有設置添加事件監聽器
+        const settingInputs = document.querySelectorAll('#settings input, #settings select, #settings textarea');
+        settingInputs.forEach(input => {
+            input.addEventListener('change', updatePreview);
+        });
+        // 設置年月日面板
+        setupSettingsPanel('date-settings-panel');
+
+        // 添加年月日物件按鈕事件監聽器
+        document.getElementById('addDateObject').addEventListener('click', createDateObject);
+
+        // 為年月日設置添加事件監聽器
+        ['yearFormat', 'monthFormat', 'dayFormat', 'weekdayFormat', 'dateSeparator', 'dateFontSize'].forEach(id => {
+            document.getElementById(id).addEventListener('change', updateAllDateObjects);
+        });
+
+        // 處理自定義分隔符圖片
+        document.getElementById('dateSeparator').addEventListener('change', function() {
+            if (this.value === 'custom') {
+                document.getElementById('customDateSeparator').click();
+            }
+        });
+
+        document.getElementById('customDateSeparator').addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // 在這裡處理自定義分隔符圖片
+                    // 例如，更新預覽或保存圖片 URL
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+    </script>
+</body>
+</html>

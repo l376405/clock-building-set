@@ -1,5 +1,13 @@
 # 專案結構
 
+## 技術實現
+
+- 前端：Vue3 + Element Plus
+- 後端：Node.js + Rust
+- 應用程式介面：tauri
+
+## 主要檔案結構
+
 - src/
   - assets/ # 資源文件資料夾
     - images/ # 圖片資料夾
@@ -13,8 +21,12 @@
       - panels.css # 左右面板樣式
       - settingBlock.css # 設置面板樣式
       - navbar.css # 導航欄樣式
+      - elementVariables.css # Element Plus 變數樣式
+      - themeVariable.css # 主題顏色變數樣式
+      - common.css # 通用樣式
   - components/ # 組件資料夾
     - LoadingAnimation.vue # 加載動畫組件
+    - ThemeSelector.vue # 主題選擇器組件
     - panels/ # 面板組件資料夾
       - LeftPanel.vue # 左側面板組件
       - RightPanel.vue # 右側面板組件
@@ -47,13 +59,15 @@
     - useExportHTML.js # 導出HTML邏輯
   - utils/ # 工具資料夾
     - logger.js # 日誌工具
+    - theme.js # 主題顏色工具
+    - componentsLoaded.js # 組件加載工具
   - store/ # 存儲資料夾
     - plugins/ # 插件
       - persistencePlugin.js # 持久化插件
       - LoggerPlugin.js # 日誌插件
     - settings.js # 設置存儲
     - objects.js # 對象存儲
-    - userPreferences.js # 用戶偏好存儲
+    - theme.js # 主題顏色存儲
   - views/ # 視圖資料夾
     - HomePage.vue
   - App.vue # 應用程序

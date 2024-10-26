@@ -198,24 +198,28 @@
 <style scoped>
     .home {
         height: 100vh;
-        width: 100vw;
-        max-height: 99vh;
+        width: 99vw;
+        max-height: 100vh;
         max-width: 99vw;
         margin: auto;
-        padding: 0.1vh 0.1vw;
+        padding: 0.1vw;
         position: relative;
         overflow: hidden;
         display: flex;
         flex-direction: column;
         box-sizing: border-box;
+		background-color: var(--appBackground);
+		color: var(--textColor);
     }
 
     .preview-area {
         border-radius: 20px; /* 圓角 */
         flex-grow: 1;
-        width: 100%;
-        height: 100%;
+        width: 90%;
+        height: 85%;
         position: relative;
+        margin-top: 0.5vh;
+        background-color: var(--previewBackground);
         z-index: 1;
         isolation: isolate; /* 創建新的堆疊上下文 */
     }
@@ -243,7 +247,8 @@
         border-radius: 10px; /* 圓角 */
         border: 1px solid rgba(255, 255, 255, 0.2); /* 邊框 */
         box-shadow: 0 4px 6px rgba(6, 5, 6, 0.624); /* 陰影 */
-        background-color: rgba(255, 255, 255, 0.9); /* 背景顏色 */
+        background-color: var(--panelBackground); /* 背景顏色 */
+		border-color: var(--borderColor); /* 邊框顏色 */
     }
 
     .top-navbar {
@@ -259,7 +264,14 @@
         z-index: 1002;
     }
 
-    .left-panel, .right-panel {
+	.top-navbar:hover,
+	.left-panel:hover,
+	.right-panel:hover {
+		background-color: var(--panelHoverColor);
+	}
+
+    .left-panel,
+    .right-panel {
         position: absolute;
         top: calc(6vh + 10px);
         bottom: 1vh;

@@ -8,6 +8,7 @@
     z-index: 1000;
     border-radius: 50%; /* 調整邊框圓角 */
     max-height: calc(100% - 15px);
+    filter: blur(1px);
 }
 
 .resizer.left {

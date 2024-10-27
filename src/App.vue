@@ -26,6 +26,7 @@
 	onMounted(() => {
 		console.log('App mounted')
 		try {
+			themeStore.loadCustomTheme() // 加載自定義主題
 			themeStore.initTheme()
 			console.log('Theme applied')
 		} catch (error) {

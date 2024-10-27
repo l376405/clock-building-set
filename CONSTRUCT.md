@@ -1,74 +1,68 @@
 # 專案結構
 
-## 技術實現
-
-- 前端：Vue3 + Element Plus
-- 後端：Node.js + Rust
-- 應用程式介面：tauri
-
-## 主要檔案結構
-
-- src/
-  - assets/ # 資源文件資料夾
-    - images/ # 圖片資料夾
-    - styles/ # 樣式資料夾
-      - main.css # 全局樣式
-      - clockObject.css # 時鐘樣式
-      - dateObject.css # 日期樣式
-      - imageObject.css # 圖片樣式
-      - textObject.css # 文字樣式
-      - shapeObject.css # 圖形樣式
-      - panels.css # 左右面板樣式
-      - settingBlock.css # 設置面板樣式
-      - navbar.css # 導航欄樣式
-      - elementVariables.css # Element Plus 變數樣式
-      - themeVariable.css # 主題顏色變數樣式
-      - common.css # 通用樣式
-  - components/ # 組件資料夾
-    - LoadingAnimation.vue # 加載動畫組件
-    - ThemeSelector.vue # 主題選擇器組件
-    - panels/ # 面板組件資料夾
-      - LeftPanel.vue # 左側面板組件
-      - RightPanel.vue # 右側面板組件
-      - ClockSetting.vue # 時鐘設置面板組件
-      - DateSetting.vue # 日期設置面板組件
-      - ObjectList.vue # 對象列表組件
-    - navbar/ # 導航欄組件資料夾
-      - TopNavbar.vue # 頂部導航欄組件
-      - UserSettings.vue # 用戶設置組件
-      - ExportArea.vue # 導出區組件
-      - ImageUpload.vue # 圖像上傳組件
-    - preview/ # 預覽組件資料夾
-      - PreviewArea.vue # 預覽區組件
-      - ClockObject.vue # 時鐘對象組件
-      - DateObject.vue # 日期對象組件
-      - ImageObject.vue # 圖片對象組件
-      - TextObject.vue # 文字對象組件
-      - ShapeObject.vue # 圖形對象組件
-  - composables/ # 邏輯資料夾
-    - useClockObjectLogic.js # 時鐘邏輯
-    - useDateObjectLogic.js # 日期邏輯
-    - useImageObjectLogic.js # 圖片邏輯
-    - useTextObjectLogic.js # 文字邏輯
-    - useShapeObjectLogic.js # 圖形邏輯
-    - useObjectCommonLogic.js # 對象通用邏輯
-    - useSettingsLogic.js # 設置邏輯
-    - usePanelResize.js # 面板調整邏輯
-    - usePanelToggle.js # 面板切換邏輯
-    - useObjectListLogic.js # 對象列表邏輯
-    - useExportHTML.js # 導出HTML邏輯
-  - utils/ # 工具資料夾
-    - logger.js # 日誌工具
-    - theme.js # 主題顏色工具
-    - componentsLoaded.js # 組件加載工具
-  - store/ # 存儲資料夾
-    - plugins/ # 插件
-      - persistencePlugin.js # 持久化插件
-      - LoggerPlugin.js # 日誌插件
-    - settings.js # 設置存儲
-    - objects.js # 對象存儲
-    - theme.js # 主題顏色存儲
-  - views/ # 視圖資料夾
-    - HomePage.vue
-  - App.vue # 應用程序
-  - main.js # 主入口
+- 📂 src *# 程式碼主目錄* (包含 8 個項目)
+  - 🟩 App.vue *# 最後修改: 2024-10-26*
+  - 🟨 main.js *# 最後修改: 2024-10-26*
+  - 📂 assets *# 資源文件目錄* (包含 3 個項目)
+    - 🖼️ logo.png *# 最後修改: 2024-10-22*
+    - 📂 images *# 專案資源圖片目錄* (包含 0 個項目)
+    - 📂 styles *# CSS樣式文件目錄* (包含 12 個項目)
+      - 🟦 clockObject.css *# 最後修改: 2024-10-22*
+      - 🟦 common.css *# 最後修改: 2024-10-26*
+      - 🟦 dateObject.css *# 最後修改: 2024-10-24*
+      - 🟦 elementVariables.css *# 最後修改: 2024-10-26*
+      - 🟦 imageObject.css *# 最後修改: 2024-10-24*
+      - 🟦 main.css *# 最後修改: 2024-10-22*
+      - 🟦 navbar.css *# 最後修改: 2024-10-22*
+      - 🟦 panels.css *# 最後修改: 2024-10-22*
+      - 🟦 settingBlock.css *# 最後修改: 2024-10-24*
+      - 🟦 shapeObject.css *# 最後修改: 2024-10-24*
+      - 🟦 textObject.css *# 最後修改: 2024-10-24*
+      - 🟦 themeVariable.css *# 最後修改: 2024-10-26*
+  - 📂 components *# 組件目錄* (包含 6 個項目)
+    - 🟩 CustomThemeEditor.vue *# 最後修改: 2024-10-26*
+    - 🟩 LoadingAnimation.vue *# 最後修改: 2024-10-25*
+    - 🟩 ThemeSelector.vue *# 最後修改: 2024-10-26*
+    - 📂 navbar *# 頂部導航欄目錄* (包含 4 個項目)
+      - 🟩 ExportArea.vue *# 最後修改: 2024-10-24*
+      - 🟩 ImageUpload.vue *# 最後修改: 2024-10-24*
+      - 🟩 TopNavbar.vue *# 最後修改: 2024-10-26*
+      - 🟩 UserSettings.vue *# 最後修改: 2024-10-24*
+    - 📂 panels *# 側邊面板目錄* (包含 5 個項目)
+      - 🟩 ClockSetting.vue *# 最後修改: 2024-10-24*
+      - 🟩 DateSetting.vue *# 最後修改: 2024-10-24*
+      - 🟩 LeftPanel.vue *# 最後修改: 2024-10-25*
+      - 🟩 ObjectList.vue *# 最後修改: 2024-10-24*
+      - 🟩 RightPanel.vue *# 最後修改: 2024-10-25*
+    - 📂 preview *# 預覽區域目錄* (包含 6 個項目)
+      - 🟩 ClockObject.vue *# 最後修改: 2024-10-23*
+      - 🟩 DateObject.vue *# 最後修改: 2024-10-22*
+      - 🟩 ImageObject.vue *# 最後修改: 2024-10-24*
+      - 🟩 PreviewArea.vue *# 最後修改: 2024-10-25*
+      - 🟩 ShapeObject.vue *# 最後修改: 2024-10-24*
+      - 🟩 TextObject.vue *# 最後修改: 2024-10-24*
+  - 📂 composables *# js函式庫目錄* (包含 11 個項目)
+    - 🟨 useClockObjectLogic.js *# 最後修改: 2024-10-24*
+    - 🟨 useDateObjectLogic.js *# 最後修改: 2024-10-22*
+    - 🟨 useExportHTML.js *# 最後修改: 2024-10-24*
+    - 🟨 useImageObjectLogic.js *# 最後修改: 2024-10-24*
+    - 🟨 useObjectCommonLogic.js *# 最後修改: 2024-10-24*
+    - 🟨 useObjectListLogic.js *# 最後修改: 2024-10-22*
+    - 🟨 usePanelResize.js *# 最後修改: 2024-10-25*
+    - 🟨 usePanelToggle.js *# 最後修改: 2024-10-25*
+    - 🟨 useSettingLogic.js *# 最後修改: 2024-10-22*
+    - 🟨 useShapeObjectLogic.js *# 最後修改: 2024-10-24*
+    - 🟨 useTextObjectLogic.js *# 最後修改: 2024-10-24*
+  - 📂 store *# 狀態管理目錄* (包含 4 個項目)
+    - 🟨 object.js *# 最後修改: 2024-10-23*
+    - 🟨 settings.js *# 最後修改: 2024-10-25*
+    - 🟨 theme.js *# 最後修改: 2024-10-26*
+    - 📂 plugins *# 包含 2 個項目*
+      - 🟨 LoggerPlugin.js *# 最後修改: 2024-10-23*
+      - 🟨 persistencePlugin.js *# 最後修改: 2024-10-23*
+  - 📂 utils *# 工具目錄* (包含 3 個項目)
+    - 🟨 componentLoader.js *# 最後修改: 2024-10-25*
+    - 🟨 logger.js *# 最後修改: 2024-10-25*
+    - 🟨 theme.js *# 最後修改: 2024-10-26*
+  - 📂 views *# 主頁面目錄* (包含 1 個項目)
+    - 🟩 HomePage.vue *# 最後修改: 2024-10-26*

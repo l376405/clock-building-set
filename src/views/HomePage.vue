@@ -116,15 +116,16 @@
     import { usePanelResize } from '@/composables/usePanelResize';
     import { usePanelToggle } from '@/composables/usePanelToggle';
     import { loadComponent } from '@/utils/componentLoader';
+	import { logger } from '@/utils/logger';
 
     const emit = defineEmits(['components-loaded']);
 
     // 動態導入組件
     const components = shallowRef({
-        TopNavbar: loadComponent(() => import('@/components/navbar/TopNavbar.vue')),
-        LeftPanel: loadComponent(() => import('@/components/panels/LeftPanel.vue')),
-        RightPanel: loadComponent(() => import('@/components/panels/RightPanel.vue')),
-        PreviewArea: loadComponent(() => import('@/components/preview/PreviewArea.vue')),
+        TopNavbar: null,
+        LeftPanel: null,
+        RightPanel: null,
+        PreviewArea: null,
     });
 
     const settingsStore = useSettingsStore();
@@ -145,18 +146,31 @@
         windowWidth.value = window.innerWidth;
     };
 
-    onMounted(async () => {
-        window.addEventListener('resize', updateWindowWidth);
-        try {
-            await logger.info('HomePage mounted');
-            await Promise.all(Object.values(components.value).map(comp => comp()));
-            emit('components-loaded');
-        } catch (error) {
-            console.error('Error loading components:', error);
-            // 即使出錯也發送事件，以避免無限加載
-            emit('components-loaded');
-        }
-    });
+	onMounted(async () => {
+		window.addEventListener('resize', updateWindowWidth);
+		try {
+			// 並行加載所有組件
+			const [TopNavbar, LeftPanel, RightPanel, PreviewArea] = await Promise.all([
+				loadComponent(() => import('@/components/navbar/TopNavbar.vue')),
+				loadComponent(() => import('@/components/panels/LeftPanel.vue')),
+				loadComponent(() => import('@/components/panels/RightPanel.vue')),
+				loadComponent(() => import('@/components/preview/PreviewArea.vue'))
+			]);
+
+			// 更新組件引用
+			components.value = {
+				TopNavbar,
+				LeftPanel,
+				RightPanel,
+				PreviewArea
+			};
+
+			emit('components-loaded');
+		} catch (error) {
+			logger.error('Error loading components:', error);
+			emit('components-loaded');
+		}
+	});
 
     onUnmounted(async () => {
         window.removeEventListener('resize', updateWindowWidth);

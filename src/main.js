@@ -1,14 +1,15 @@
-import { createApp } from 'vue'
+import { createApp, nextTick } from 'vue'
 import { createPinia } from 'pinia'
 import { persistencePlugin } from './store/plugins/persistencePlugin'
 import { loggerPlugin } from './store/plugins/LoggerPlugin'
 import { logger } from './utils/logger'
+import { useThemeStore } from './store/theme'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import App from './App.vue'
 import './assets/styles/common.css'
 import './assets/styles/elementVariables.css'
-import { changeTheme } from './utils/theme'
+import { applyCustomTheme } from './utils/theme'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import './assets/styles/themeVariable.css'
 
@@ -57,9 +58,8 @@ app.config.globalProperties.$logger = logger
 app.mount('#app')
 
 // 使用 nextTick 確保在 DOM 更新後應用主題
-import { nextTick } from 'vue'
-nextTick(() => {
-  const { useThemeStore } = require('./store/theme')
+nextTick(async () => {
   const themeStore = useThemeStore()
-  changeTheme(themeStore.primaryColor)
+  await logger.debug('Initializing theme', { primaryColor: themeStore.primaryColor })
+  await applyCustomTheme(themeStore.customTheme)
 })

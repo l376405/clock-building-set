@@ -2,12 +2,28 @@ const dirTree = require("directory-tree");
 const fs = require("fs");
 const path = require("path");
 
-const tree = dirTree("./src", {
-    exclude: /node_modules|\.git/,
-    extensions: /\.(js|vue|css|md|json|html|svg|png|jpg|jpeg|gif)$/
-});
+// 創建一個虛擬的根節點
+const rootTree = {
+    name: "root",
+    children: [
+        dirTree("./src", {
+            exclude: /node_modules|\.git/,
+            extensions: /\.(js|vue|css|md|json|html|svg|png|jpg|jpeg|gif)$/
+        })
+    ]
+};
+
+// 添加 index.html 到根節點
+const indexHtmlPath = path.join(__dirname, 'index.html');
+if (fs.existsSync(indexHtmlPath)) {
+    rootTree.children.unshift({
+        name: "index.html",
+        path: indexHtmlPath
+    });
+}
 
 function readComment(dir) {
+    if (!dir) return null;  // 如果 dir 是 undefined 或 null，直接返回 null
     const commentPath = path.join(dir, ".comment");
     if (fs.existsSync(commentPath)) {
         return fs.readFileSync(commentPath, "utf-8").trim();
@@ -59,16 +75,18 @@ function generateMarkdown(node, depth = 0) {
     const icon = getIcon(node);
     md += `${indent}- ${icon} ${node.name}`;
 
-    const comment = readComment(node.path);
-    const fileInfo = getFileInfo(node);
-    
-    if (comment) {
-        md += ` *# ${comment}*`;
-        if (node.children) {
-            md += ` (${fileInfo})`;
+    if (node.path) {  // 只在 node.path 存在時執行以下代碼
+        const comment = readComment(node.path);
+        const fileInfo = getFileInfo(node);
+
+        if (comment) {
+            md += ` *# ${comment}*`;
+            if (node.children) {
+                md += ` (${fileInfo})`;
+            }
+        } else {
+            md += ` *# ${fileInfo}*`;
         }
-    } else {
-        md += ` *# ${fileInfo}*`;
     }
     md += "\n";
 
@@ -91,7 +109,7 @@ function generateMarkdown(node, depth = 0) {
     return md;
 }
 
-const markdown = "# 專案結構\n\n" + generateMarkdown(tree);
+const markdown = "# 專案結構\n\n" + generateMarkdown(rootTree);
 fs.writeFileSync("CONSTRUCT.md", markdown);
 
 console.log("CONSTRUCT.md has been generated successfully.");

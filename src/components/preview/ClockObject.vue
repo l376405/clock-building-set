@@ -1,5 +1,5 @@
 <template>
-    <div id="preview">
+    <div id="ClockObject">
         <div id="background-layer"></div>
         <div id="clock-layer">
             <div class="clock" id="clock">

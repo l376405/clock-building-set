@@ -18,8 +18,9 @@
 	/* Colorful theme */
 	--colorful-appBackground: #39222a;
 	--colorful-previewBackground: #AEA4BF;
-	--colorful-panelBackground: #E3E4DB;
+	--colorful-panelBackground: #ded7a0;
 	--colorful-textColor: #69446d;
-	--colorful-panelHoverColor: #dde1d6;
+	--colorful-panelHoverColor: #d1c98f;
 	--colorful-borderColor: #8F6593;
+
   }

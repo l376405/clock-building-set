@@ -45,7 +45,7 @@
 		setTimeout(() => {
 			isLoading.value = false
 			console.log('Loading finished')
-		}, 1000)
+		}, 600)
 	}
 
 	const onComponentsLoaded = () => {

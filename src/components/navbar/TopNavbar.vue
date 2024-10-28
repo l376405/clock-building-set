@@ -30,8 +30,8 @@
 	import ThemeSelector from '@/components/ThemeSelector.vue';
 
 	const components = shallowRef({
-		userSetting: loadComponent('@/components/navbar/UserSetting.vue'),
-		ExportArea: loadComponent('@/components/navbar/ExportArea.vue'),
+		userSetting: loadComponent(() => import('@/components/navbar/UserSettings.vue')),
+		ExportArea: loadComponent(() => import('@/components/navbar/ExportArea.vue')),
 	});
 
 	onMounted(async () => {

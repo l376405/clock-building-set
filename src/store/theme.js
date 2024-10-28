@@ -2,28 +2,28 @@ import { defineStore } from 'pinia'
 
 const themes = {
 	light: {
-	  appBackground: 'var(--light-appBackground)',
-	  previewBackground: 'var(--light-previewBackground)',
-	  panelBackground: 'var(--light-panelBackground)',
-	  textColor: 'var(--light-textColor)',
-	  panelHoverColor: 'var(--light-panelHoverColor)',
-	  borderColor: 'var(--light-borderColor)'
+		appBackground: 'var(--light-appBackground)',
+		previewBackground: 'var(--light-previewBackground)',
+		panelBackground: 'var(--light-panelBackground)',
+		textColor: 'var(--light-textColor)',
+		panelHoverColor: 'var(--light-panelHoverColor)',
+		borderColor: 'var(--light-borderColor)'
 	},
 	dark: {
-	  appBackground: 'var(--dark-appBackground)',
-	  previewBackground: 'var(--dark-previewBackground)',
-	  panelBackground: 'var(--dark-panelBackground)',
-	  textColor: 'var(--dark-textColor)',
-	  panelHoverColor: 'var(--dark-panelHoverColor)',
-	  borderColor: 'var(--dark-borderColor)'
+		appBackground: 'var(--dark-appBackground)',
+		previewBackground: 'var(--dark-previewBackground)',
+		panelBackground: 'var(--dark-panelBackground)',
+		textColor: 'var(--dark-textColor)',
+		panelHoverColor: 'var(--dark-panelHoverColor)',
+		borderColor: 'var(--dark-borderColor)'
 	},
 	colorful: {
-	  appBackground: 'var(--colorful-appBackground)',
-	  previewBackground: 'var(--colorful-previewBackground)',
-	  panelBackground: 'var(--colorful-panelBackground)',
-	  textColor: 'var(--colorful-textColor)',
-	  panelHoverColor: 'var(--colorful-panelHoverColor)',
-	  borderColor: 'var(--colorful-borderColor)'
+		appBackground: 'var(--colorful-appBackground)',
+		previewBackground: 'var(--colorful-previewBackground)',
+		panelBackground: 'var(--colorful-panelBackground)',
+		textColor: 'var(--colorful-textColor)',
+		panelHoverColor: 'var(--colorful-panelHoverColor)',
+		borderColor: 'var(--colorful-borderColor)'
 	},
 	custom: {
 		appBackground: 'var(--custom-appBackground)',

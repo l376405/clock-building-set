@@ -27,8 +27,8 @@
     import { loadComponent } from '@/utils/componentLoader';
 
     const components = shallowRef({
-        ImageUpload: loadComponent('@/components/navbar/ImageUpload.vue'),
-        ObjectList: loadComponent('@/components/navbar/ObjectList.vue'),
+        ImageUpload: loadComponent(() => import('@/components/navbar/ImageUpload.vue')),
+        ObjectList: loadComponent(() => import('@/components/panels/ObjectList.vue')),
     });
 
     onMounted(async () => {

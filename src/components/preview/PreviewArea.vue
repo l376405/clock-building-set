@@ -27,8 +27,8 @@
     import { loadComponent } from '@/utils/componentLoader';
 
     const components = shallowRef({
-        ClockObject: loadComponent('@/components/preview/ClockObject.vue'),
-        DateObject: loadComponent('@/components/preview/DateObject.vue'),
+        ClockObject: loadComponent(() => import('@/components/preview/ClockObject.vue')),
+        DateObject: loadComponent(() => import('@/components/preview/DateObject.vue')),
     });
 
     onMounted(async () => {

@@ -27,8 +27,8 @@
   import { loadComponent } from '@/utils/componentLoader';
 
   const components = shallowRef({
-      ClockSetting: loadComponent('@/components/panels/ClockSetting.vue'),
-      DateSetting: loadComponent('@/components/panels/DateSetting.vue'),
+      ClockSetting: loadComponent(() => import('@/components/panels/ClockSetting.vue')),
+      DateSetting: loadComponent(() => import('@/components/panels/DateSetting.vue')),
   });
 
   onMounted(async () => {

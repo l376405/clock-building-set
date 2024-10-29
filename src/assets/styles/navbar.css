@@ -1,0 +1,74 @@
+/* 導航欄組件基礎尺寸 */
+:root {
+	--navbar-height: 38px;
+	--navbar-item-small: 38px;
+	--navbar-item-medium: 76px;
+	--navbar-item-large: 114px;
+	--navbar-item-margin: 1px;
+	--navbar-item-border-radius: 50%;
+	--navbar-capsule-radius: 19px;
+  }
+  
+  /* 導航欄按鈕容器樣式 */
+  .navbar-item {
+	height: var(--navbar-height);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  /* 尺寸變體 */
+  .navbar-item-small {
+	width: var(--navbar-item-small);
+	border-radius: 50%;
+  }
+  
+  .navbar-item-medium {
+	width: calc(var(--navbar-item-small) * 2 + 2px);
+	border-radius: var(--navbar-capsule-radius);
+  }
+  
+  .navbar-item-large {
+	width: calc(var(--navbar-item-small) * 3 + 4px);
+	border-radius: var(--navbar-capsule-radius);
+  }
+  
+  /* 導航欄按鈕基礎樣式 */
+  .navbar-button {
+	width: var(--navbar-height);
+	height: var(--navbar-height);
+	padding: 0;
+	border-radius: 50%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-shrink: 0;
+  }
+  
+  /* 導航欄圖標通用樣式 */
+  .navbar-icon {
+	font-size: 20px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
+  }
+  
+  /* 只有實際的組件才有懸停效果 */
+  .navbar-item:hover:not(.navbar-dragging) {
+	transform: translateY(-7%);
+	box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  }
+  
+  .navbar-draggable {
+	cursor: grab;
+	user-select: none;
+  }
+  
+  .navbar-dragging {
+	cursor: grabbing !important;
+	opacity: 0.5;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }

@@ -1,3 +1,3 @@
 <template>
-    <div>ExportArea</div>
+    <div>匯出</div>
 </template>

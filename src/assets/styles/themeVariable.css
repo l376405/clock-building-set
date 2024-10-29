@@ -9,7 +9,7 @@
   
 	/* Dark theme */
 	--dark-appBackground: #141414;
-	--dark-previewBackground: #1f1f1f;
+	--dark-previewBackground: #3d3d3d;
 	--dark-panelBackground: #1f1f1f;
 	--dark-textColor: #ffffff;
 	--dark-panelHoverColor: #272728;
@@ -17,10 +17,10 @@
   
 	/* Colorful theme */
 	--colorful-appBackground: #39222a;
-	--colorful-previewBackground: #AEA4BF;
-	--colorful-panelBackground: #ded7a0;
+	--colorful-previewBackground: #d8d1e4;
+	--colorful-panelBackground: #f6f0bd;
 	--colorful-textColor: #69446d;
-	--colorful-panelHoverColor: #d1c98f;
+	--colorful-panelHoverColor: #e5dea9;
 	--colorful-borderColor: #8F6593;
 
   }

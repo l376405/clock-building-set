@@ -1,5 +1,5 @@
 <template>
-	<div class="theme-selector">
+	<div class="theme-selector navbar-item navbar-item-small">
 	  <el-dropdown
 		ref="dropdown"
 		trigger="click"
@@ -7,7 +7,7 @@
 		@visible-change="handleDropdownVisibleChange"
 		:hide-on-click="false"
 	  >
-		<el-button class="theme-button">
+		<el-button class="theme-button navbar-button">
 			<el-icon>
 				<component :is="getCurrentThemeIcon"></component>
 			</el-icon>
@@ -15,13 +15,13 @@
 		<template #dropdown>
 			<el-dropdown-menu>
 				<el-dropdown-item v-for="theme in themeNames" :key="theme" :command="theme">
-					<el-icon class="theme-icon">
+					<el-icon class="navbar-icon">
 						<component :is="getThemeIcon(theme)"></component>
 					</el-icon>
 					{{ theme }}
 					</el-dropdown-item>
 					<el-dropdown-item @click.stop="openCustomEditor">
-					<el-icon class="theme-icon">
+					<el-icon class="navbar-icon">
 						<Edit />
 					</el-icon>
 					自定義
@@ -48,6 +48,7 @@
   import { useThemeStore } from '../store/theme'
   import CustomThemeEditor from './CustomThemeEditor.vue'
   import { Edit } from '@element-plus/icons-vue'
+  import '../assets/styles/navbar.css'
   
   const themeStore = useThemeStore()
   const dropdown = ref(null)
@@ -109,17 +110,10 @@
   <style scoped>
   .theme-selector {
 	position: relative;
-	border-radius: 50%;
   }
   
   .theme-button {
-	width: 38px;
-	height: 38px;
 	padding: 0;
-	border-radius: 50%;
-	display: flex;
-	justify-content: center;
-	align-items: center;
   }
   
   .theme-button .el-icon {

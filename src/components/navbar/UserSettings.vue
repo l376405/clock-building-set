@@ -1,3 +1,3 @@
 <template>
-    <div>UserSettings</div>
+    <div>設定</div>
 </template>

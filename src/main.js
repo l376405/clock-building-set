@@ -1,65 +1,73 @@
+import './assets/styles/themeVariable.css'
 import { createApp, nextTick } from 'vue'
 import { createPinia } from 'pinia'
-import { persistencePlugin } from './store/plugins/persistencePlugin'
-import { loggerPlugin } from './store/plugins/LoggerPlugin'
-import { logger } from './utils/logger'
+import { createPersistedState } from '@/store/plugins/persistencePlugin'
+import { loggerPlugin } from '@/store/plugins/LoggerPlugin'
+import { logger } from '@/utils/logger'
 import { useThemeStore } from './store/theme'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import App from './App.vue'
 import './assets/styles/common.css'
 import './assets/styles/elementVariables.css'
-import { applyCustomTheme } from './utils/theme'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
-import './assets/styles/themeVariable.css'
 
-// 創建 Vue 實例
-const app = createApp(App)
-
-// 創建 Pinia 實例
-const pinia = createPinia()
-// 添加自定義序列化器
-pinia.use(({ store }) => {
-	const serializer = {
-	  serialize: JSON.stringify,
-	  deserialize: (value) => {
-		try {
-		  return JSON.parse(value)
-		} catch (e) {
-		  console.error('Failed to deserialize stored value:', e)
-		  return undefined
-		}
-	  }
-	}
-	
-	store.$persist = {
-	  enabled: true,
-	  strategies: [
-		{
-		  key: store.$id,
-		  storage: localStorage,
-		  serializer: serializer
-		}
-	  ]
-	}
-})
-
-app.use(pinia)
-app.use(ElementPlus)
-
-// 註冊 Element Plus 圖標組件
-for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-  app.component(key, component)
+// 清理 localStorage 中的無效數據
+const cleanLocalStorage = () => {
+  try {
+    const keys = Object.keys(localStorage)
+    keys.forEach(key => {
+      try {
+        JSON.parse(localStorage.getItem(key))
+      } catch (e) {
+        console.warn(`Removing invalid storage for key ${key}`)
+        localStorage.removeItem(key)
+      }
+    })
+  } catch (e) {
+    console.error('Failed to clean localStorage:', e)
+  }
 }
 
-app.config.globalProperties.$logger = logger
-
-// 在 app 掛載之後初始化主題
-app.mount('#app')
-
-// 使用 nextTick 確保在 DOM 更新後應用主題
-nextTick(async () => {
+// 初始化主題
+const initializeTheme = async () => {
   const themeStore = useThemeStore()
-  await logger.debug('Initializing theme', { primaryColor: themeStore.primaryColor })
-  await applyCustomTheme(themeStore.customTheme)
+  await logger.debug('Initializing theme')
+  themeStore.initTheme()
+}
+
+// 應用初始化
+const initializeApp = async () => {
+  // 清理 localStorage
+  cleanLocalStorage()
+
+  // 創建應用實例
+  const app = createApp(App)
+
+  // 配置 Pinia
+  const pinia = createPinia()
+  pinia.use(createPersistedState())
+  app.use(pinia)
+
+  // 配置 Element Plus
+  app.use(ElementPlus)
+
+  // 註冊 Element Plus 圖標
+  for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+    app.component(key, component)
+  }
+
+  // 配置全局 logger
+  app.config.globalProperties.$logger = logger
+
+  // 掛載應用
+  app.mount('#app')
+
+  // 在 DOM 更新後初始化主題
+  await nextTick(() => initializeTheme())
+}
+
+// 啟動應用
+initializeApp().catch(error => {
+  console.error('Failed to initialize app:', error)
 })

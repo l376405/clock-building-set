@@ -24,22 +24,22 @@
 	})
 
 	onMounted(() => {
-		console.log('App mounted')
-		try {
-			themeStore.loadCustomTheme() // 加載自定義主題
-			themeStore.initTheme()
-			console.log('Theme applied')
-		} catch (error) {
-			console.error('Error applying theme:', error)
-		}
-
-		setTimeout(() => {
-			if (isLoading.value) {
-			console.warn('Loading timeout, forcing component display')
-			isLoading.value = false
-			}
-		}, 5000)
-	})
+  console.log('App mounted')
+  console.log('Initial localStorage state:', {
+    theme: localStorage.getItem('theme'),
+    customTheme: localStorage.getItem('customTheme')
+  })
+  
+  try {
+    themeStore.initTheme()
+    console.log('Theme initialized:', {
+      currentTheme: themeStore.currentTheme,
+      customTheme: themeStore.customTheme
+    })
+  } catch (error) {
+    console.error('Error initializing theme:', error)
+  }
+})
 
 	const hideLoadingWithDelay = () => {
 		setTimeout(() => {

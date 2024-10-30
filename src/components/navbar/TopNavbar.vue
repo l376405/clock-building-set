@@ -1,63 +1,78 @@
 <template>
 	<div class="top-navbar">
-	  <div class="top-navbar-content" ref="navbarRef">
-		<!-- 左側固定組件 -->
-		<div class="navbar-left">
-		  <div class="navbar-item navbar-item-medium">
-			<Suspense>
-			  <component :is="components.userSetting" />
-			  <template #fallback>
-				<div class="error-container">UserSettings 加載失敗</div>
-			  </template>
-			</Suspense>
-		  </div>
-		  <div class="navbar-item navbar-item-medium">
-			<Suspense>
-			  <component :is="components.ExportArea" />
-			  <template #fallback>
-				<div class="error-container">ExportArea 加載失敗</div>
-			  </template>
-			</Suspense>
-		  </div>
-		</div>
+		<div class="top-navbar-content" ref="navbarRef">
+      <!-- 左側固定組件 -->
+      <div class="navbar-left">
+        <div class="navbar-item navbar-item-medium">
+          <Suspense>
+            <div class="component-wrapper">
+              <component :is="components.userSetting" />
+            </div>
+            <template #fallback>
+              <div class="error-container">UserSettings 加載失敗</div>
+            </template>
+          </Suspense>
+        </div>
+        <div class="navbar-item navbar-item-medium">
+          <Suspense>
+            <div class="component-wrapper">
+              <component :is="components.ExportArea" />
+            </div>
+            <template #fallback>
+              <div class="error-container">ExportArea 加載失敗</div>
+            </template>
+          </Suspense>
+        </div>
+      </div>
   
 		<!-- 中間可拖動區域的網格 -->
 		<div class="navbar-grid" ref="gridRef">
-		  <!-- 網格背景 -->
-		  <div 
-			v-for="index in gridCells" 
-			:key="index"
-			class="grid-cell"
-			@dragover.prevent="handleDragOver($event, index - 1)"
-			@drop="handleDrop($event, index - 1)"
-		  ></div>
-  
-		  <!-- 示例可拖動組件 -->
-		  <template v-for="(demo, index) in demoItems" :key="index">
-			<div 
-			  :class="[
-				'navbar-item',
-				'navbar-draggable',
-				`navbar-item-${demo.size}`,
-				'demo-item',
-				{ 'navbar-dragging': isDragging && draggedItem === index }
-			  ]"
-			  :style="getItemPosition(demo)"
-			  draggable="true"
-			  @dragstart="handleDragStart($event, index)"
-			  @dragend="handleDragEnd"
-			>
-			  <el-icon class="navbar-icon">
-				<component :is="getIconComponent(demo.iconName)" />
-			  </el-icon>
-			</div>
-		  </template>
-		</div>
+        <!-- 網格背景 -->
+        <div 
+          v-for="index in gridCells" 
+          :key="index"
+          class="grid-cell"
+          @dragover.prevent="handleDragOver($event, index - 1)"
+          @drop="handleDrop($event, index - 1)"
+        ></div>
+
+        <!-- 可拖動組件 -->
+        <template v-for="(demo, index) in demoItems" :key="index">
+          <div 
+            :class="getItemClasses(demo, index)"
+            :style="getItemPosition(demo)"
+            draggable="true"
+            @dragstart="handleDragStart($event, index)"
+            @dragend="handleDragEnd"
+          >
+            <!-- 圖標類型 -->
+            <template v-if="demo.type === COMPONENT_TYPES.ICON">
+              <el-icon class="navbar-icon">
+                <component :is="getIconComponent(demo.iconName)" />
+              </el-icon>
+            </template>
+            
+            <!-- 組件類型 -->
+            <template v-else>
+              <Suspense>
+                <div class="component-wrapper">
+                  <component :is="components[demo.componentName]" />
+                </div>
+                <template #fallback>
+                  <div class="error-container">組件加載失敗</div>
+                </template>
+              </Suspense>
+            </template>
+          </div>
+        </template>
+      </div>
   
 		<!-- 右側固定組件 -->
 		<div class="navbar-right">
 		  <Suspense>
-			<component :is="components.ThemeSelector" />
+			<div class="component-wrapper">
+				<component :is="components.ThemeSelector" />
+			</div>
 			<template #fallback>
 			  <div class="error-container">ThemeSelector 加載失敗</div>
 			</template>
@@ -65,213 +80,415 @@
 		</div>
 	  </div>
 	</div>
-  </template>
+</template>
+
 <script setup>
 import { shallowRef, ref, computed, onMounted } from 'vue';
 import { loadComponent } from '@/utils/componentLoader';
+import { useNavbarStore } from '@/store/navbarStore';
 import { logger } from '@/utils/logger';
 import * as ElementPlusIcons from '@element-plus/icons-vue';
+import { storeToRefs } from 'pinia';
+import { COMPONENT_TYPES } from '@/constants';
 
-// 組件引用
-const components = shallowRef({
-  userSetting: loadComponent(() => import('./UserSettings.vue'), 'UserSettings'),
-  ExportArea: loadComponent(() => import('./ExportArea.vue'), 'ExportArea'),
-  ThemeSelector: loadComponent(() => import('@/components/ThemeSelector.vue'), 'ThemeSelector')
+const navbarStore = useNavbarStore();
+const { items: demoItems } = storeToRefs(navbarStore);
+
+const GRID_CONFIG = {
+	totalCells: 53,
+	baseWidth: 38,
+	gap: 2,
+  };
+
+const navbarRef = ref(null);
+const gridRef = ref(null);
+const components = shallowRef({});
+const draggedItem = ref(null);
+const isDragging = ref(false);
+const dragStartPosition = ref(null);
+const lastPosition = ref(null);
+const displacedItems = ref(new Map());
+
+onMounted(async () => {
+  components.value = {
+    userSetting: await loadComponent(() => import('./UserSettings.vue'), 'UserSettings'),
+    ExportArea: await loadComponent(() => import('./ExportArea.vue'), 'ExportArea'),
+    ThemeSelector: await loadComponent(() => import('@/components/ThemeSelector.vue'), 'ThemeSelector')
+  };
 });
 
-// 示例組件數據
-const demoItems = ref([
-  { iconName: 'Clock', size: 'small', position: 0 },
-  { iconName: 'Calendar', size: 'medium', position: 2 },
-  { iconName: 'Timer', size: 'large', position: 5 }
-]);
 
-// 獲取圖標組件的方法
+const gridCells = computed(() => GRID_CONFIG.totalCells);
+
+const visibleCells = computed(() => {
+  if (!gridRef.value || !navbarRef.value) return GRID_CONFIG.totalCells;
+  
+  const navbarWidth = navbarRef.value.clientWidth;
+  const leftPanelWidth = 156; // 2 * medium item (78px each)
+  const rightPanelWidth = 38; // 1 * small item
+  const gridPadding = 40; // 左右各20px
+  
+  const availableWidth = navbarWidth - leftPanelWidth - rightPanelWidth - gridPadding;
+  const cellWidth = GRID_CONFIG.baseWidth + GRID_CONFIG.gap;
+  
+  return Math.floor(availableWidth / cellWidth);
+});
+
 const getIconComponent = (iconName) => {
   return ElementPlusIcons[iconName];
 };
 
-const draggedItem = ref(null);
-const navbarRef = ref(null);
-const isDragging = ref(false);
+const getItemClasses = (demo, index) => {
+  return [
+    'navbar-item',
+    'navbar-draggable',
+    `navbar-item-${demo.size}`,
+    'demo-item',
+    { 'dragging': isDragging.value && draggedItem.value === index }
+  ];
+};
+
+const getItemPosition = (item) => {
+  const cellWidth = GRID_CONFIG.baseWidth + GRID_CONFIG.gap;
+  const left = item.position * cellWidth + 19;
   
-  // 計算網格數量
-  const gridCells = computed(() => {
-	if (!navbarRef.value) return 0;
-	const totalWidth = navbarRef.value.clientWidth;
-	const leftWidth = 156; // 2 * medium item
-	const rightWidth = 42; // 1 * small item
-	const spacing = 30; // 左右間距總和
-	const availableWidth = totalWidth - leftWidth - rightWidth - spacing;
-	return Math.max(0, Math.floor(availableWidth / 40)); // 40 = item width(38) + gap(2)
+  return {
+    left: `${left}px`,
+    visibility: item.position < visibleCells.value ? 'visible' : 'hidden',
+    position: 'absolute'
+  };
+};
+
+const pushItems = (fromIndex, toIndex) => {
+  if (fromIndex === toIndex) return true;
+  
+  const items = [...demoItems.value];
+  const draggedItemObj = items[draggedItem.value];
+  const draggedSize = draggedItemObj.size === 'medium' ? 2 : draggedItemObj.size === 'large' ? 3 : 1;
+  const direction = toIndex > fromIndex ? 1 : -1;
+  
+  // 找到目標位置上的物件
+  const targetItem = items.find((item, index) => {
+    if (index === draggedItem.value) return false;
+    
+    const itemSize = item.size === 'medium' ? 2 : item.size === 'large' ? 3 : 1;
+    
+    // 檢查是否在目標位置上有重疊
+    return (toIndex < item.position + itemSize) && 
+           (toIndex + draggedSize > item.position);
   });
   
-  // 計算組件位置
-  const getItemPosition = (item) => {
-	const baseWidth = 40; // 基礎網格寬度 (38px + 2px gap)
-	const left = item.position * baseWidth;
-	return {
-	  left: `${left}px`
-	};
-  };
+  if (!targetItem) return true;
   
-  // 拖曳相關方法
-  const handleDragStart = (event, index) => {
-	draggedItem.value = index;
-	isDragging.value = true;
-	event.target.classList.add('dragging');
-  };
+  const targetIndex = items.indexOf(targetItem);
+  const targetSize = targetItem.size === 'medium' ? 2 : targetItem.size === 'large' ? 3 : 1;
   
-  const handleDragEnd = (event) => {
-	event.target.classList.remove('dragging');
-	isDragging.value = false;
-	draggedItem.value = null;
-	// 清除所有活動狀態
-	document.querySelectorAll('.grid-cell-active').forEach(el => {
-	  el.classList.remove('grid-cell-active');
-	});
-  };
+  // 計算新位置（只允許反向移動）
+  const newPosition = direction > 0
+    ? toIndex - targetSize  // 向右移動時，目標往左移
+    : toIndex + draggedSize;  // 向左移動時，目標往右移
+    
+  // 檢查新位置是否有效
+  if (newPosition < 0 || newPosition + targetSize > visibleCells.value) {
+    return false;
+  }
   
-  const handleDragOver = (event, gridIndex) => {
-	event.preventDefault();
-	// 先清除所有活動狀態
-	document.querySelectorAll('.grid-cell-active').forEach(el => {
-	  el.classList.remove('grid-cell-active');
-	});
-	
-	if (isValidDropPosition(gridIndex)) {
-	  // 獲取當前拖曳項目的大小
-	  const item = demoItems.value[draggedItem.value];
-	  const size = item.size === 'medium' ? 2 : item.size === 'large' ? 3 : 1;
-	  
-	  // 高亮顯示所有會被佔用的格子
-	  for (let i = 0; i < size; i++) {
-		const cell = document.querySelector(`.grid-cell:nth-child(${gridIndex + i + 1})`);
-		if (cell) {
-		  cell.classList.add('grid-cell-active');
-		}
-	  }
-	}
-  };
-  
-  const handleDrop = (event, gridIndex) => {
-	event.preventDefault();
-	if (!isValidDropPosition(gridIndex)) return;
-  
-	const items = [...demoItems.value];
-	const item = items[draggedItem.value];
-	item.position = gridIndex;
-	
-	// 更新位置
-	demoItems.value = items;
-	
-	// 清理狀態
-	document.querySelectorAll('.grid-cell-active').forEach(el => {
-	  el.classList.remove('grid-cell-active');
-	});
-  };
-  
-  // 檢查是否可以放置
-  const isValidDropPosition = (gridIndex) => {
-	if (draggedItem.value === null) return false;
-	
-	const item = demoItems.value[draggedItem.value];
-	const size = item.size === 'medium' ? 2 : item.size === 'large' ? 3 : 1;
-	
-	// 檢查是否超出範圍
-	if (gridIndex < 0 || gridIndex + size > gridCells.value) {
-	  return false;
-	}
-	
-	// 檢查是否與其他組件重疊
-	for (let i = 0; i < demoItems.value.length; i++) {
-	  if (i === draggedItem.value) continue;
-	  
-	  const otherItem = demoItems.value[i];
-	  const otherSize = otherItem.size === 'medium' ? 2 : otherItem.size === 'large' ? 3 : 1;
-	  
-	  if (!(gridIndex + size <= otherItem.position || 
-			gridIndex >= otherItem.position + otherSize)) {
-		return false;
-	  }
-	}
-	
-	return true;
-  };
-  
-  onMounted(() => {
-	logger.info('TopNavbar mounted', { gridCells: gridCells.value });
+  // 檢查新位置是否會與其他物件重疊
+  const hasOverlap = items.some((item, index) => {
+    if (index === targetIndex || index === draggedItem.value) return false;
+    
+    const itemSize = item.size === 'medium' ? 2 : item.size === 'large' ? 3 : 1;
+    return (newPosition < item.position + itemSize) && 
+           (newPosition + targetSize > item.position);
   });
-  </script>
   
-  <style scoped>
-  .top-navbar-content {
-	position: relative;
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	height: 100%;
-	width: 100%;
-	max-height: 50px;
-	overflow: hidden;
-	box-sizing: border-box;
+  if (hasOverlap) return false;
+  
+  // 保存原始位置
+  if (!displacedItems.value.has(targetIndex)) {
+    displacedItems.value.set(targetIndex, targetItem.position);
   }
   
-  .navbar-left {
-	display: flex;
-	gap: 2px;
-	height: 100%;
-	flex-shrink: 0;
-	margin: 0 5px 0 10px;
-	align-items: center;
+  // 執行推擠
+  items[targetIndex].position = newPosition;
+  demoItems.value = items;
+  return true;
+};
+
+// 首先添加一個檢查位置是否有效的輔助函數
+const isValidPosition = (position, size, excludeIndex = null) => {
+  if (position < 0 || position + size > visibleCells.value) return false;
+  
+  return !demoItems.value.some((item, index) => {
+    if (index === excludeIndex) return false;
+    const itemSize = item.size === 'medium' ? 2 : item.size === 'large' ? 3 : 1;
+    
+    // 修改重疊檢查邏輯，確保完整範圍檢查
+    const itemStart = item.position;
+    const itemEnd = item.position + itemSize;
+    const newStart = position;
+    const newEnd = position + size;
+    
+    return !(itemEnd <= newStart || itemStart >= newEnd);
+  });
+};
+
+const handleDragStart = (event, index) => {
+  draggedItem.value = index;
+  isDragging.value = true;
+  dragStartPosition.value = demoItems.value[index].position;
+  lastPosition.value = dragStartPosition.value;
+  
+  const draggedElement = event.target;
+  draggedElement.classList.add('dragging');
+  draggedElement.style.opacity = '0.5';
+  
+  const dragImage = draggedElement.cloneNode(true);
+  dragImage.style.position = 'absolute';
+  dragImage.style.top = '-1000px';
+  document.body.appendChild(dragImage);
+  event.dataTransfer.setDragImage(dragImage, event.offsetX, event.offsetY);
+};
+
+const handleDragEnd = (event) => {
+  const draggedElement = event.target;
+  draggedElement.classList.remove('dragging');
+  draggedElement.style.opacity = '1';
+  isDragging.value = false;
+  draggedItem.value = null;
+  dragStartPosition.value = null;
+  lastPosition.value = null;
+  
+  // 清除被推擠物件的位置記錄
+  displacedItems.value.clear();
+  
+  document.querySelectorAll('.grid-cell-active').forEach(el => {
+    el.classList.remove('grid-cell-active');
+  });
+  
+  const dragImage = document.querySelector('.drag-image');
+  if (dragImage) {
+    dragImage.remove();
+  }
+};
+
+const handleDragOver = (event, gridIndex) => {
+  event.preventDefault();
+  
+  if (draggedItem.value === null) return;
+  
+  const item = demoItems.value[draggedItem.value];
+  const size = item.size === 'medium' ? 2 : item.size === 'large' ? 3 : 1;
+  
+  // 確保不超出可見範圍
+  if (gridIndex < 0 || gridIndex + size > visibleCells.value) return;
+  
+  if (dragStartPosition.value !== gridIndex) {
+    const canPush = pushItems(dragStartPosition.value, gridIndex);
+    if (canPush) {
+      const items = [...demoItems.value];
+      items[draggedItem.value] = {
+        ...items[draggedItem.value],
+        position: gridIndex
+      };
+      demoItems.value = items;
+      lastPosition.value = gridIndex;
+    }
   }
   
-  .navbar-grid {
-	position: relative;
-	flex: 1;
-	display: flex;
-	justify-content: flex-start;
-	align-items: center;
-	gap: 2px;
-	height: 100%;
-	min-width: 0;
-	overflow: hidden;
+  // 更新高亮顯示
+  document.querySelectorAll('.grid-cell-active').forEach(el => {
+    el.classList.remove('grid-cell-active');
+  });
+  
+  for (let i = 0; i < size; i++) {
+    const cell = document.querySelector(`.grid-cell:nth-child(${gridIndex + i + 1})`);
+    if (cell) {
+      cell.classList.add('grid-cell-active');
+    }
+  }
+};
+
+const handleDrop = (event, gridIndex) => {
+  event.preventDefault();
+  
+  if (draggedItem.value === null) return;
+  if (gridIndex >= visibleCells.value) return;
+  
+  const items = [...demoItems.value];
+  const item = items[draggedItem.value];
+  const size = item.size === 'medium' ? 2 : item.size === 'large' ? 3 : 1;
+  
+  const maxStartPosition = Math.min(visibleCells.value - size, gridCells.value - size);
+  let adjustedIndex = Math.min(gridIndex, maxStartPosition);
+  adjustedIndex = Math.max(0, adjustedIndex);
+  
+  // 檢查是否與其他物件重疊
+  const hasOverlap = items.some((otherItem, index) => {
+    if (index === draggedItem.value) return false;
+    
+    const otherSize = otherItem.size === 'medium' ? 2 : otherItem.size === 'large' ? 3 : 1;
+    const otherLeft = otherItem.position;
+    const otherRight = otherItem.position + otherSize - 1;
+    
+    const newLeft = adjustedIndex;
+    const newRight = adjustedIndex + size - 1;
+    
+    // 檢查是否有任何重疊
+    return !(otherRight < newLeft || otherLeft > newRight);
+  });
+  
+  // 如果有重疊，嘗試回到原始位置
+  if (hasOverlap) {
+    if (dragStartPosition.value !== null) {
+      items[draggedItem.value].position = dragStartPosition.value;
+      demoItems.value = items;
+    }
+    return;
   }
   
-  .grid-cell {
-	width: var(--navbar-item-small);
-	height: 100%;
-	background-color: transparent;
-	border: 1px dashed rgba(var(--primary-color-rgb), 0.1);
-	flex-shrink: 0;
-	transition: background-color 0.2s ease;
-  }
+  // 如果沒有重疊，更新位置
+  items[draggedItem.value] = {
+    ...items[draggedItem.value],
+    position: adjustedIndex
+  };
+  demoItems.value = items;
   
-  .grid-cell-active {
-	background-color: rgba(var(--primary-color-rgb), 0.1);
-  }
-  
-  .navbar-right {
-	display: flex;
-	align-items: center;
-	height: 100%;
-	flex-shrink: 0;
-	margin: 0 10px 0 5px;
-  }
-  
-  .demo-item {
-	position: absolute;
-	background-color: var(--panelBackground);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	height: var(--navbar-height);
-	transition: all 0.3s ease;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .demo-item .el-icon {
-	font-size: 20px;
-	color: var(--textColor);
-  }
-  </style>
+  document.querySelectorAll('.grid-cell-active').forEach(el => {
+    el.classList.remove('grid-cell-active');
+  });
+};
+</script>
+
+<style scoped>
+.top-navbar-content {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  max-height: 50px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.navbar-left {
+  display: flex;
+  gap: 2px;
+  height: 100%;
+  flex-shrink: 0;
+  margin-left: 5px;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  flex-shrink: 0;
+  margin: 0 10px 0 5px;
+  min-width: 38px;
+}
+
+.navbar-grid {
+  position: relative;
+  flex: 1;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 2px;
+  height: 100%;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0 20px;
+  box-sizing: border-box;
+  mask-image: linear-gradient(to right, 
+    black calc(100% - 40px), 
+    transparent 100%
+  );
+}
+
+.grid-cell {
+  flex: 0 0 38px;
+  width: 38px;
+  height: var(--navbar-height);
+  border: 1px dashed transparent;
+  box-sizing: border-box;
+  transition: border-color 0.3s;
+}
+
+.grid-cell-active {
+  border-color: var(--el-color-primary);
+}
+
+.navbar-item {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navbar-draggable {
+  cursor: move;
+}
+
+.demo-item {
+  position: absolute;
+  background-color: var(--panelBackground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--navbar-height);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  border-radius: var(--navbar-capsule-radius);
+}
+
+.demo-item.navbar-item-small {
+  width: 38px;
+}
+
+.demo-item.navbar-item-medium {
+  width: 78px;
+}
+
+.demo-item.navbar-item-large {
+  width: 118px;
+}
+
+.demo-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.demo-item.dragging {
+  transform: scale(1.05);
+  opacity: 0.5;
+  z-index: 1000;
+}
+
+.demo-item .el-icon {
+  font-size: 20px;
+  color: var(--textColor);
+}
+
+.error-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: 0 10px;
+  color: var(--el-color-danger);
+  font-size: 12px;
+}
+
+.component-wrapper {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+</style>

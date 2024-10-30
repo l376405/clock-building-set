@@ -95,4 +95,4 @@ export const useSettingsStore = defineStore('settings', {
       await logger.info('Finished loading settings from localStorage');  // 新增日誌
     }
   }
-})
+},{persist: true})
